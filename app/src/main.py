@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from .config import settings
+from .routers.products import router as products_router
 
 
 app = FastAPI(
@@ -35,5 +36,7 @@ def readiness():
     }
 
 
-# Prometheus metrics
+app.include_router(products_router)
+
+
 Instrumentator().instrument(app).expose(app)
