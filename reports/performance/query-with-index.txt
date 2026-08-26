@@ -1,0 +1,16 @@
+PostgreSQL Index Benchmark
+Dataset: 100,002 rows
+Query:
+SELECT *
+FROM products
+WHERE category = 'Electronics';
+
+Execution Plan:
+
+Bitmap Heap Scan on products  (cost=113.64..1042.39 rows=9980 width=32) (actual time=0.564..1.843 rows=10002 loops=1)
+  Recheck Cond: ((category)::text = 'Electronics'::text)
+  Heap Blocks: exact=804
+  -> Bitmap Index Scan on ix_products_category  (cost=0.00..111.14 rows=9980 width=0) (actual time=0.432..0.432 rows=10002 loops=1)
+       Index Cond: ((category)::text = 'Electronics'::text)
+Planning Time: 0.223 ms
+Execution Time: 2.176 ms

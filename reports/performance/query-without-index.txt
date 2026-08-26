@@ -1,0 +1,14 @@
+PostgreSQL Index Benchmark
+Dataset: 100,002 rows
+Query:
+SELECT *
+FROM products
+WHERE category = 'Electronics';
+
+Execution Plan:
+
+Seq Scan on products  (cost=0.00..2054.03 rows=9814 width=32) (actual time=0.010..7.463 rows=10002 loops=1)
+  Filter: ((category)::text = 'Electronics'::text)
+  Rows Removed by Filter: 90000
+Planning Time: 0.166 ms
+Execution Time: 7.742 ms
