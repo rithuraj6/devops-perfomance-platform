@@ -1,5 +1,34 @@
 services:
 
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+
+    image: devops-perfomance-api:dev
+    container_name: devops-platform-api
+
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://app_user:app_password@postgres:5432/performance_db
+      REDIS_URL: redis://redis:6379/0
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    networks:
+      - platform-net
+
+    restart: unless-stopped
+
+
   postgres:
     image: postgres:16-alpine
     container_name: devops-platform-postgres
@@ -19,7 +48,11 @@ services:
       - platform-net
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app_user -d performance_db"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U app_user -d performance_db"
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,10 +71,20 @@ services:
     networks:
       - platform-net
 
-    command: redis-server --appendonly yes
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes"
+      ]
 
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
       interval: 5s
       timeout: 3s
       retries: 5
