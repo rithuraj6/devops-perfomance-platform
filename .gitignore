@@ -38,3 +38,9 @@ env/
 
 # Load testing
 load-test/results/
+
+
+
+# Kubernetes secrets
+k8s/**/secret.yaml
+k8s/**/secrets.yaml

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: performance-platform-config
+  namespace: performance-platform
+data:
+  APP_ENV: "production"
+  REDIS_URL: "redis://redis:6379/0"

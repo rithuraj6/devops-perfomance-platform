@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: performance-platform
+  labels:
+    app.kubernetes.io/part-of: performance-platform
+    environment: dev
