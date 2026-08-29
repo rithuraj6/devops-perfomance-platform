@@ -3,6 +3,14 @@ kind: ConfigMap
 metadata:
   name: performance-platform-config
   namespace: performance-platform
+
 data:
   APP_ENV: "production"
-  REDIS_URL: "redis://redis:6379/0"
+
+  DATABASE_HOST: "performance-postgresql"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "performance_db"
+  DATABASE_USER: "app_user"
+
+  REDIS_HOST: "performance-redis-master"
+  REDIS_PORT: "6379"
