@@ -2,99 +2,23 @@
 
 A production-style DevOps project demonstrating:
 
+- Containerized FastAPI application
 - Kubernetes high availability
+- Multi-node Kubernetes deployment
 - Horizontal Pod Autoscaling
-- Load balancing and ingress
-- Canary deployments
-- Blue-green deployments
-- CI/CD automation
+- NGINX Ingress
+- Canary deployment
+- Blue-Green deployment
+- GitHub Actions CI/CD
 - Prometheus and Grafana monitoring
 - k6 performance testing
-- PostgreSQL optimization
+- PostgreSQL with persistent storage
 - Redis caching
+- PostgreSQL indexing and query optimization
 
-## Technology Stack
-
-- Python / FastAPI
-- Docker
-- Kubernetes
-- AWS EKS
-- Helm
-- NGINX / Istio
-- Jenkins
-- Argo Rollouts
-- Prometheus
-- Grafana
-- PostgreSQL
-- Redis
-- k6
-
-
-# DevOps Performance & Scalability Platform
-
-A production-style DevOps project demonstrating containerized application deployment,
-Kubernetes orchestration, horizontal scaling, persistent storage, observability,
-performance testing, and CI/CD automation.
-
-The project uses a FastAPI application backed by PostgreSQL and Redis and deploys
-the application to Kubernetes using Helm and Kubernetes manifests.
-
-
-Repository Structure
-devops-perfomance-platform/
-│
-├── app/
-│   ├── src/
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── init_db.py
-│   │   ├── models.py
-│   │   └── ...
-│   │
-│   ├── tests/
-│   ├── Dockerfile
-│   └── requirements.txt
-│
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-│
-├── helm/
-│   ├── postgresql/
-│   │   └── values.yaml
-│   └── redis/
-│       └── values.yaml
-│
-├── k8s/
-│   └── base/
-│       ├── namespace.yaml
-│       ├── configmap.yaml
-│       ├── secret.example.yaml
-│       ├── deployment.yaml
-│       ├── service.yaml
-│       ├── ingress.yaml
-│       ├── hpa.yaml
-│       └── servicemonitor.yaml
-│
-├── load-test/
-│
-├── reports/
-│   └── performance/
-│       ├── database-indexing.md
-│       ├── query-with-index.txt
-│       └── query-without-index.txt
-│
-├── compose.yaml
-└── README.md
-
-# DevOps Performance & Scalability Platform
-
-A production-style DevOps project demonstrating containerized application deployment,
-Kubernetes orchestration, horizontal scaling, persistent storage, observability,
-performance testing, and CI/CD automation.
-
-The project uses a FastAPI application backed by PostgreSQL and Redis and deploys
-the application to Kubernetes using Helm and Kubernetes manifests.
+> The implementation was validated on a local 2-node Minikube cluster.
+> The Kubernetes manifests are designed to demonstrate the required
+> Kubernetes concepts without claiming an EKS deployment.
 
 ---
 
@@ -104,59 +28,140 @@ the application to Kubernetes using Helm and Kubernetes manifests.
                          Developer
                              |
                              v
-                        GitHub Repository
+                     GitHub Repository
                              |
                              v
-                      GitHub Actions CI
-                       /             \
-                      /               \
-                pytest             Docker Build
-                                      |
-                                      v
-                                    GHCR
-                                      |
-                                      v
-                         Kubernetes / Minikube
-                                      |
-                              NGINX Ingress
-                                      |
-                              performance.local
-                                      |
-                                      v
-                         performance-api Service
-                              (ClusterIP)
-                                      |
-                         +------------+------------+
-                         |                         |
-                         v                         v
-                   API Pod 1                  API Pod 2
-                         |                         |
-                         +------------+------------+
-                                      |
-                           +----------+----------+
-                           |                     |
-                           v                     v
-                     PostgreSQL               Redis
-                     StatefulSet            StatefulSet
-                           |                     |
-                           v                     v
-                         PVC                   PVC
+                       GitHub Actions
+                       CI Pipeline
+                      /           \
+                 pytest        Docker Build
+                                  |
+                                  v
+                                GHCR
+                                  |
+                                  v
+                     Self-Hosted Runner
+                                  |
+                                  v
+                         2-Node Minikube
+                                  |
+                           NGINX Ingress
+                                  |
+                   +--------------+--------------+
+                   |                             |
+                   v                             v
+          performance.local          bluegreen.performance.local
+                   |                             |
+                   v                             v
+          performance-api              performance-api-bg
+             Service                     Service
+                   |                    /           \
+                   |                   /             \
+                   v                  v               v
+             API Pods              BLUE            GREEN
+             2 replicas           2 pods           2 pods
+                   |
+          +--------+--------+
+          |                 |
+          v                 v
+      PostgreSQL          Redis
+      StatefulSet         StatefulSet
+          |                 |
+          v                 v
+         PVC               PVC
 
-                    +---------------------------+
-                    |                           |
-                    v                           v
-                 Prometheus                 Grafana
-                    |
-                    v
-              API /metrics
+              Prometheus
+                   |
+              ServiceMonitor
+                   |
+                   v
+                Grafana
 
-                    HPA
-                     |
-                     v
-             API replicas: 2 -> 5
+                 HPA
+                  |
+                  v
+          API replicas: 2 → 5
+Technology Stack
+Python
+FastAPI
+Docker
+Kubernetes
+Minikube
+NGINX Ingress
+Helm
+GitHub Actions
+GitHub Container Registry
+Prometheus
+Grafana
+PostgreSQL
+Redis
+k6
+Repository Structure
+devops-perfomance-platform/
+│
+├── app/
+│   ├── src/
+│   ├── tests/
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── cd.yml
+│
+├── helm/
+│   ├── postgresql/
+│   │   └── values.yaml
+│   └── redis/
+│       └── values.yaml
+│
+├── k8s/
+│   ├── base/
+│   └── ingress/
+│       ├── blue-deployment.yaml
+│       ├── green-deployment.yaml
+│       ├── bluegreen-service.yaml
+│       └── bluegreen-ingress.yaml
+│
+├── load-test/
+│   └── api-load.js
+│
+├── reports/
+│   └── performance/
+│       ├── database-indexing.md
+│       ├── k6-results.md
+│       ├── query-with-index.txt
+│       └── query-without-index.txt
+│
+├── compose.yaml
+└── README.md
+Application
+
+The application is implemented using FastAPI.
+
+Main API endpoint:
+
+GET /api/products
+
+Health endpoints:
+
+GET /health
+GET /ready
+
+Prometheus metrics:
+
+GET /metrics
+
+The application uses:
+
+PostgreSQL for persistent data
+Redis for caching
+SQLAlchemy for database access
+Prometheus instrumentation for HTTP metrics
 Local Development
 
-Create and activate the Python virtual environment:
+Create a virtual environment:
 
 python3 -m venv .venv
 source .venv/bin/activate
@@ -170,16 +175,16 @@ Run tests:
 
 pytest
 
-Expected result:
+Expected:
 
 8 passed
 Docker
 
-Build the application image:
+Build:
 
 docker build -t devops-perfomance-api:test ./app
 
-Run the container:
+Run:
 
 docker run --rm \
   -d \
@@ -190,44 +195,72 @@ docker run --rm \
 Test:
 
 curl http://localhost:8001/health
-
-Stop the container:
-
-docker stop performance-api-test
 Kubernetes
 
-The application is deployed into the:
+The application runs in:
 
 performance-platform
 
 namespace.
 
-Create the namespace:
+The application Deployment is configured with:
 
-kubectl apply -f k8s/base/namespace.yaml
+2 initial replicas
+CPU requests/limits
+Readiness probe
+Liveness probe
+Pod anti-affinity
+RollingUpdate strategy
 
-Apply configuration:
+The two API replicas were validated across the two Minikube nodes.
 
-kubectl apply -f k8s/base/configmap.yaml
-kubectl apply -f k8s/base/secret.yaml
+Example:
 
-Deploy the application:
+kubectl get pods -n performance-platform -o wide
+High Availability
 
-kubectl apply -f k8s/base/deployment.yaml
-kubectl apply -f k8s/base/service.yaml
+The Kubernetes cluster consists of two nodes:
 
-Verify:
+minikube
+minikube-m02
 
-kubectl get pods -n performance-platform
-PostgreSQL and Redis
+The API uses pod anti-affinity to prefer scheduling replicas on different Kubernetes nodes.
 
-PostgreSQL and Redis are deployed using Helm.
+This provides node-level distribution for the API workload.
+
+The application is stateless, with state stored externally in PostgreSQL and Redis.
+
+Horizontal Pod Autoscaling
+
+The HPA configuration uses:
+
+Minimum replicas: 2
+Maximum replicas: 5
+CPU target: 60%
+
+Check:
+
+kubectl get hpa -n performance-platform
+
+The final performance test reached 50 VUs successfully while maintaining two API replicas because CPU utilization remained below the configured scaling threshold.
+
+The HPA was therefore configured and operational, but the final k6 workload did not force a scale-up event.
 
 PostgreSQL
+
+PostgreSQL is deployed using the Bitnami Helm chart.
 
 Configuration:
 
 helm/postgresql/values.yaml
+
+Features:
+
+Persistent storage
+10Gi volume
+Resource requests/limits
+Database initialization through SQLAlchemy
+Non-root container security context
 
 Install:
 
@@ -235,15 +268,21 @@ helm install performance-postgresql \
   bitnami/postgresql \
   -n performance-platform \
   -f helm/postgresql/values.yaml
-
-PostgreSQL uses a persistent volume:
-
-10Gi
 Redis
+
+Redis is deployed using Helm.
 
 Configuration:
 
 helm/redis/values.yaml
+
+Features:
+
+Standalone Redis
+Authentication
+Persistent storage
+1Gi volume
+Resource requests/limits
 
 Install:
 
@@ -251,369 +290,351 @@ helm install performance-redis \
   bitnami/redis \
   -n performance-platform \
   -f helm/redis/values.yaml
+Redis Caching
 
-Redis uses a persistent volume:
+The /api/products endpoint uses Redis caching.
 
-1Gi
+Cache key:
 
-Check Helm releases:
+products:list
 
-helm list -n performance-platform
-Database Initialization
+Cache TTL:
 
-The SQLAlchemy models are initialized using:
+60 seconds
 
-python -m src.init_db
+Individual products use:
 
-Inside Kubernetes:
+product:<id>
 
-kubectl run db-init \
-  --rm -it \
-  --restart=Never \
-  -n performance-platform \
-  --image=ghcr.io/rithuraj6/devops-perfomance-api:latest \
-  --image-pull-policy=IfNotPresent \
-  --env="APP_ENV=production" \
-  --env="DATABASE_HOST=performance-postgresql" \
-  --env="DATABASE_PORT=5432" \
-  --env="DATABASE_NAME=performance_db" \
-  --env="DATABASE_USER=app_user" \
-  --env="DATABASE_PASSWORD=app_password" \
-  --command -- python -m src.init_db
+The cache reduces repeated PostgreSQL queries for frequently accessed product data.
 
-The products table is created automatically from the SQLAlchemy model.
+Database Indexing
 
-Persistent Storage Validation
+The products.category column is indexed using SQLAlchemy:
 
-PostgreSQL data was tested by creating a product and then restarting the
-PostgreSQL StatefulSet pod.
+category = mapped_column(
+    String(100),
+    nullable=False,
+    index=True,
+)
 
-Example query:
+Query execution results are documented in:
 
-SELECT COUNT(*) FROM products;
+reports/performance/database-indexing.md
 
-Result:
+The repository contains both indexed and non-indexed query results for comparison.
 
- count
--------
-     1
-
-After deleting and recreating the PostgreSQL pod, the product remained available.
-
-This demonstrates that the database is using persistent storage rather than
-ephemeral container storage.
-
-Redis persistence was also tested successfully using:
-
-devops:persistence-test
-
-with the value:
-
-hello-kubernetes
-Horizontal Pod Autoscaling
-
-The API Deployment has:
-
-Minimum replicas: 2
-Maximum replicas: 5
-CPU target: 60%
-
-Check the HPA:
-
-kubectl get hpa -n performance-platform
-
-Example:
-
-NAME                  REFERENCE                    TARGETS   MINPODS   MAXPODS   REPLICAS
-performance-api-hpa   Deployment/performance-api   cpu: 1%/60%   2     5         2
-
-During load testing the HPA successfully scaled the application:
-
-2 replicas
-   |
-   v
-3 replicas
-   |
-   v
-4 replicas
-   |
-   v
-5 replicas
-
-After load was removed, the deployment scaled back toward the minimum.
-
-Load Testing
-
-Load was generated from inside the Kubernetes cluster:
-
-kubectl run load-client \
-  --rm -it \
-  --restart=Never \
-  -n performance-platform \
-  --image=curlimages/curl \
-  -- sh
-
-Then:
-
-while true; do
-  curl -s http://performance-api:8000/api/products > /dev/null
-done
-
-The CPU load caused the HPA to increase the API replica count.
-
-The Kubernetes metrics server was used to observe resource consumption:
-
-kubectl top pods -n performance-platform
 NGINX Ingress
 
-NGINX Ingress was enabled in Minikube:
+NGINX Ingress is used for HTTP routing.
 
-minikube addons enable ingress
-
-Ingress configuration:
-
-k8s/base/ingress.yaml
-
-The application is exposed through:
+The primary application hostname is:
 
 performance.local
 
-The local /etc/hosts configuration maps the hostname to the Minikube IP.
+The Minikube NGINX controller is exposed through NodePort:
 
-Verify:
+30900
 
-curl -H "Host: performance.local" \
-  http://192.168.49.2:30811/health
-
-Expected:
-
-{
-  "status": "healthy"
-}
-
-API request:
+Example:
 
 curl -H "Host: performance.local" \
-  http://192.168.49.2:30811/api/products
+  http://192.168.49.2:30900/api/products
+Canary Deployment
+
+A canary deployment was demonstrated using:
+
+Separate canary Deployment
+Separate canary Service
+NGINX Canary Ingress
+10% configured canary weight
+
+The canary pod reached Ready state and NGINX logs confirmed requests reaching the canary upstream.
+
+The temporary canary resources were removed after validation to keep the final cluster state clean.
+
+The test did not claim an exact 10% measured traffic distribution.
+
+Blue-Green Deployment
+
+Blue-Green deployment uses two independent environments:
+
+performance-api-blue
+performance-api-green
+
+Both environments run simultaneously.
+
+The traffic Service:
+
+performance-api-bg
+
+initially selects:
+
+version: blue
+
+Traffic can be switched to Green by changing the selector to:
+
+version: green
+
+The Blue → Green cutover was successfully demonstrated.
+
+Before:
+
+performance-api-bg
+        |
+        +--> Blue Pod
+        +--> Blue Pod
+
+After:
+
+performance-api-bg
+        |
+        +--> Green Pod
+        +--> Green Pod
+
+The application remained available during the switch.
+
 Monitoring
 
-The project uses Prometheus and Grafana for observability.
-
-Prometheus scrapes the API through a Kubernetes ServiceMonitor.
-
-ServiceMonitor:
-
-k8s/base/servicemonitor.yaml
+Prometheus and Grafana are used for observability.
 
 The API exposes:
 
 /metrics
 
-Prometheus target verification confirmed both API pods as:
+Prometheus discovers the application through:
 
-health: up
+k8s/base/servicemonitor.yaml
 
-The application also exposes the metric:
-
-http_requests_total
-
-Example Prometheus query:
+Important metrics include:
 
 http_requests_total
+http_request_duration_seconds
 
-Metrics include:
+Grafana dashboard includes:
 
-HTTP handler
-HTTP method
-HTTP status
-Pod
-Namespace
-Service
-Instance
-Grafana
+API request rate
+P95 latency
+HPA replica count
+HPA desired replicas
 
-Grafana is used to visualize Kubernetes and application metrics.
+Observed P95 latency in Grafana:
 
-Port-forward Grafana:
+~95 ms
+Performance Testing
 
-kubectl port-forward \
-  -n monitoring \
-  svc/monitoring-grafana \
-  3000:80
+Load testing uses k6.
 
-Then access:
+Test script:
 
-http://localhost:3000
+load-test/api-load.js
+
+Load profile:
+
+30s → 10 VUs
+60s → 25 VUs
+60s → 50 VUs
+30s → ramp down
+
+Maximum:
+
+50 VUs
+
+Final test results:
+
+Metric	Result
+Requests	4,169
+Throughput	23.10 req/s
+Failed requests	0.00%
+Successful checks	100%
+Average latency	1.89 ms
+Median latency	1.67 ms
+P90	2.29 ms
+P95	2.64 ms
+Maximum latency	60.72 ms
+Maximum VUs	50
+
+Thresholds:
+
+P95 < 1000 ms     PASS
+Failure rate < 1% PASS
+
+Full report:
+
+reports/performance/k6-results.md
+
+These results represent the local Minikube environment and should not be interpreted as production-scale capacity.
+
 CI/CD
+Continuous Integration
 
-GitHub Actions automatically runs on:
+GitHub Actions runs CI on:
 
-push to main
-pull request to main
+Push to main
+Pull requests to main
 
-Workflow:
+Pipeline:
 
 Git Push
    |
    v
-GitHub Actions
+pytest
    |
-   v
-Run pytest
-   |
-   | tests pass
    v
 Docker Build
    |
    v
-Login to GHCR
-   |
-   v
-Push Docker Image
-   |
-   +----------------------------+
-   |                            |
-   v                            v
-commit SHA tag              latest tag
+GHCR
 
-Workflow file:
+The Docker image is published using:
+
+<git-sha>
+latest
+
+Workflow:
 
 .github/workflows/ci.yml
+Continuous Deployment
 
-The pipeline:
+CD uses a GitHub self-hosted runner running on the Kubernetes host.
+
+Workflow:
+
+.github/workflows/cd.yml
+
+The CD pipeline:
 
 Checks out the repository.
-Installs Python 3.12.
-Installs application dependencies.
-Runs pytest.
-Builds the Docker image.
-Authenticates to GHCR.
-Pushes the image using both Git commit SHA and latest.
-Container Registry
+Verifies Kubernetes access.
+Applies Blue-Green resources.
+Deploys the immutable Git SHA image to Green.
+Waits for the Green rollout.
+Verifies Green pods.
+Switches the Blue-Green Service to Green.
+Verifies Green endpoints.
+Performs an application health check.
 
-Images are published to GitHub Container Registry:
+The deployment image uses:
 
-ghcr.io/rithuraj6/devops-perfomance-api
+ghcr.io/rithuraj6/devops-perfomance-api:<git-sha>
 
-The Kubernetes Deployment currently consumes:
+rather than relying exclusively on latest.
 
-ghcr.io/rithuraj6/devops-perfomance-api:latest
+The CD workflow is currently manually triggered using:
 
-The CI pipeline also publishes immutable commit-SHA tags.
+workflow_dispatch
 
-Kubernetes Self-Healing
+This was intentional during validation to prevent an automatic local-cluster deployment on every push.
 
-The API is managed by a Kubernetes Deployment with two replicas.
+Self-Healing
 
-Pod failure was tested by deleting the API pods:
+The API is managed by a Kubernetes Deployment.
 
-kubectl delete pod \
-  -n performance-platform \
-  -l app=performance-api
+If an API pod fails, Kubernetes automatically creates a replacement pod.
 
-Kubernetes automatically created replacement pods.
+This demonstrates Kubernetes Deployment-based self-healing.
 
-This demonstrated Deployment-based self-healing.
+PostgreSQL is managed using a StatefulSet with persistent storage, allowing its pod to be recreated without losing persisted database data.
 
-PostgreSQL is managed by a StatefulSet, allowing its pod to be recreated
-while retaining its persistent volume.
+Persistent Storage
 
-Helm Validation
+PostgreSQL uses a persistent volume:
 
-Helm templates were rendered locally before deployment:
+10Gi
 
-helm template performance-postgresql \
-  bitnami/postgresql \
-  --namespace performance-platform \
-  -f helm/postgresql/values.yaml
+Redis uses:
 
-Redis:
+1Gi
 
-helm template performance-redis \
-  bitnami/redis \
-  --namespace performance-platform \
-  -f helm/redis/values.yaml
-
-Both charts were successfully deployed and verified.
-
+Persistence was validated by restarting the database workloads and verifying that stored data remained available.
 
 Security
 
-Sensitive Kubernetes credentials are not committed to Git.
+Sensitive Kubernetes credentials are excluded from Git.
 
-The real secret file:
+The real secret:
 
 k8s/base/secret.yaml
 
-is excluded through .gitignore.
+is ignored using .gitignore.
 
-Only the example template is committed:
+Only:
 
 k8s/base/secret.example.yaml
 
-The example file contains placeholder values such as:
+is committed.
 
-DATABASE_PASSWORD: "change-me"
-REDIS_PASSWORD: "change-me"
+The example contains placeholder credentials.
+
+The application containers also use a non-root user.
+
 Verification Summary
-
-The following functionality has been tested successfully:
-
 Feature	Status
 FastAPI application	✅
-Unit/API tests	✅ 8 passed
+Automated application tests	✅
 Docker build	✅
-Docker container	✅
-PostgreSQL	✅
-Redis	✅
-PostgreSQL persistent storage	✅
-Redis persistent storage	✅
-Kubernetes Deployment	✅
-Kubernetes Service	✅
-2 API replicas	✅
-Pod self-healing	✅
-HPA	✅ 2 → 5 replicas
-Metrics Server	✅
-NGINX Ingress	✅
-Custom hostname	✅
-Prometheus	✅
-ServiceMonitor	✅
-API metrics	✅
-Grafana	✅
-GitHub Actions	✅
 GHCR image publishing	✅
-GHCR → Kubernetes deployment	✅
-Kubernetes/Helm validation	✅
-Secrets excluded from Git	✅
-Current Project Status
+2-node Kubernetes cluster	✅
+API high availability	✅
+Pod anti-affinity	✅
+Kubernetes self-healing	✅
+HPA	✅
+NGINX Ingress	✅
+Canary deployment demonstration	✅
+Blue-Green deployment	✅
+Blue → Green cutover	✅
+GitHub Actions CI	✅
+GitHub Actions CD	✅
+Self-hosted runner	✅
+PostgreSQL Helm deployment	✅
+PostgreSQL persistence	✅
+PostgreSQL indexing	✅
+Redis Helm deployment	✅
+Redis caching	✅
+Redis persistence	✅
+Prometheus	✅
+Grafana	✅
+ServiceMonitor	✅
+k6 performance testing	✅
+Performance report	✅
+Kubernetes secrets excluded from Git	✅
+Project Status
 Phase 1 — Application Foundation
 
-Completed
+✅ Completed
 
 Phase 2 — Containerization
 
-Completed
+✅ Completed
 
 Phase 3 — Kubernetes Deployment
 
-Completed
+✅ Completed
 
 Phase 4 — Persistence
 
-Completed
+✅ Completed
 
 Phase 5 — Autoscaling
 
-Completed
+✅ Completed
 
-Phase 6 — Ingress
+Phase 6 — Ingress & Traffic Management
 
-Completed
+✅ Completed
 
 Phase 7 — Observability
 
-Completed
+✅ Completed
 
-Phase 8 — CI/CD
+Phase 8 — Performance Testing
 
-Completed
+✅ Completed
+
+Phase 9 — Blue-Green Deployment
+
+✅ Completed
+
+Phase 10 — CI/CD
+
+✅ Completed
