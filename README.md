@@ -80,7 +80,7 @@ A production-style DevOps project demonstrating:
                  HPA
                   |
                   v
-          API replicas: 2 → 5
+          API replicas: 2 → 5 configured by HPA
 Technology Stack
 Python
 FastAPI
