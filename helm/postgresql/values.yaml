@@ -3,6 +3,12 @@ auth:
   password: app_password
   database: performance_db
 
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+
 primary:
   persistence:
     enabled: true

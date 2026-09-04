@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: performance-api
+  name: performance-api-green
   namespace: performance-platform
 
 spec:
@@ -10,27 +10,20 @@ spec:
 
   selector:
     matchLabels:
-      app: performance-api
+      app: performance-api-bg
+      version: green
 
   template:
     metadata:
       labels:
-        app: performance-api
+        app: performance-api-bg
+        version: green
 
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                topologyKey: kubernetes.io/hostname
-                labelSelector:
-                  matchLabels:
-                    app: performance-api
       containers:
         - name: api
           image: ghcr.io/rithuraj6/devops-perfomance-api:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
 
           ports:
             - containerPort: 8000
@@ -38,7 +31,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: performance-platform-config
-
             - secretRef:
                 name: performance-platform-secret
 
@@ -46,7 +38,6 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
-
             limits:
               cpu: 500m
               memory: 512Mi
@@ -55,7 +46,6 @@ spec:
             httpGet:
               path: /ready
               port: 8000
-
             initialDelaySeconds: 5
             periodSeconds: 10
 
@@ -63,6 +53,5 @@ spec:
             httpGet:
               path: /health
               port: 8000
-
             initialDelaySeconds: 10
             periodSeconds: 20

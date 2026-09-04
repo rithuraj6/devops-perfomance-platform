@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: performance-api-bluegreen
+  namespace: performance-platform
+
+spec:
+  ingressClassName: nginx
+
+  rules:
+    - host: bluegreen.performance.local
+
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: performance-api-bg
+                port:
+                  number: 8000

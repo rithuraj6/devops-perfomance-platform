@@ -1,0 +1,65 @@
+name: CD - Blue Green Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Minikube
+    runs-on: self-hosted
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify Kubernetes access
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Apply Blue-Green resources
+        run: |
+          kubectl apply -f k8s/ingress/blue-deployment.yaml
+          kubectl apply -f k8s/ingress/green-deployment.yaml
+          kubectl apply -f k8s/ingress/bluegreen-service.yaml
+          kubectl apply -f k8s/ingress/bluegreen-ingress.yaml
+
+      - name: Deploy new image to Green
+        run: |
+          kubectl set image deployment/performance-api-green \
+            api=ghcr.io/${{ github.repository_owner }}/devops-perfomance-api:${{ github.sha }} \
+            -n performance-platform
+
+      - name: Wait for Green rollout
+        run: |
+          kubectl rollout status \
+            deployment/performance-api-green \
+            -n performance-platform \
+            --timeout=180s
+
+      - name: Verify Green pods
+        run: |
+          kubectl get pods \
+            -n performance-platform \
+            -l version=green
+
+      - name: Switch traffic to Green
+        run: |
+          kubectl patch service performance-api-bg \
+            -n performance-platform \
+            -p '{"spec":{"selector":{"app":"performance-api-bg","version":"green"}}}'
+
+      - name: Verify Green endpoints
+        run: |
+          kubectl get endpoints performance-api-bg \
+            -n performance-platform
+
+      - name: Verify application
+        run: |
+          curl --fail \
+            -H "Host: bluegreen.performance.local" \
+            http://192.168.49.2:30900/api/products
