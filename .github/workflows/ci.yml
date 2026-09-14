@@ -57,7 +57,10 @@ jobs:
           context: ./app
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/devops-perfomance-api:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/devops-perfomance-api:${{ github.run_number }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.run_number }}
 
   update-manifest:
     name: Update Helm Image Tag
@@ -75,7 +78,7 @@ jobs:
       - name: Update image tag
         run: |
           sed -i \
-            's/^  tag: .*/  tag: "${{ github.sha }}"/' \
+            's/^  tag: .*/  tag: "${{ github.run_number }}"/' \
             helm/app/values.yaml
 
       - name: Commit desired state
@@ -86,6 +89,6 @@ jobs:
           git add helm/app/values.yaml
 
           git commit \
-            -m "chore: update image to ${{ github.sha }} [skip ci]"
+            -m "chore: update image to build ${{ github.run_number }} [skip ci]"
 
           git push
