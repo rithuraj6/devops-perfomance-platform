@@ -10,6 +10,8 @@ spec:
     - istio-ingress/{{ .Values.istio.gateway.name }}
   http:
     - name: {{ .Values.istio.virtualService.routeName }}
+
+      {{- if eq .Values.strategy.type "canary" }}
       route:
         - destination:
             host: performance-api
@@ -19,4 +21,12 @@ spec:
             host: performance-api
             subset: canary
           weight: 0
+
+      {{- else if eq .Values.strategy.type "blueGreen" }}
+      route:
+        - destination:
+            host: {{ .Values.strategy.blueGreen.activeService }}
+          weight: 100
+
+      {{- end }}
 {{- end }}

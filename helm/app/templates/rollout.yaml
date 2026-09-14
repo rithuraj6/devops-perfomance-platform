@@ -63,37 +63,28 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 20
 
-  strategy:
-    canary:
-      trafficRouting:
-        istio:
-          virtualService:
-            name: performance-api
-            routes:
-              - primary
-          destinationRule:
-            name: performance-api
-            canarySubsetName: canary
-            stableSubsetName: stable
+    strategy:
+      {{- if eq .Values.strategy.type "canary" }}
+      canary:
+        trafficRouting:
+          istio:
+            virtualService:
+              name: performance-api
+              routes:
+                - primary
+            destinationRule:
+              name: performance-api
+              canarySubsetName: canary
+              stableSubsetName: stable
 
+        steps:
+          {{- toYaml .Values.strategy.canary.steps | nindent 8 }}
 
+      {{- else if eq .Values.strategy.type "blueGreen" }}
+      blueGreen:
+        activeService: {{ .Values.strategy.blueGreen.activeService }}
+        previewService: {{ .Values.strategy.blueGreen.previewService }}
+        autoPromotionEnabled: {{ .Values.strategy.blueGreen.autoPromotionEnabled }}
+        scaleDownDelaySeconds: {{ .Values.strategy.blueGreen.scaleDownDelaySeconds }}
 
-
-      steps:
-        - setWeight: 10
-        - pause:
-            duration: 30s
-
-        - setWeight: 25
-        - pause:
-            duration: 30s
-
-        - setWeight: 50
-        - pause:
-            duration: 60s
-
-        - setWeight: 75
-        - pause:
-            duration: 60s
-
-        - setWeight: 100
+      {{- end }}
