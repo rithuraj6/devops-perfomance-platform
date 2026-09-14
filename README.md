@@ -1,640 +1,975 @@
-# DevOps Performance & Scalability Platform
+# DevOps Performance Platform
 
-A production-style DevOps project demonstrating:
+A production-style DevOps and Kubernetes performance engineering project demonstrating:
 
 - Containerized FastAPI application
-- Kubernetes high availability
-- Multi-node Kubernetes deployment
-- Horizontal Pod Autoscaling
-- NGINX Ingress
-- Canary deployment
-- Blue-Green deployment
-- GitHub Actions CI/CD
-- Prometheus and Grafana monitoring
-- k6 performance testing
-- PostgreSQL with persistent storage
+- PostgreSQL database
 - Redis caching
-- PostgreSQL indexing and query optimization
+- Kubernetes high availability
+- Horizontal Pod Autoscaling
+- Helm-based application deployment
+- Argo CD GitOps continuous delivery
+- Argo Rollouts progressive delivery
+- Istio traffic management
+- Canary deployments
+- Prometheus monitoring
+- Grafana dashboards
+- K6 performance testing
+- GitHub Actions CI
+- Immutable application image versions
+- Zero-downtime deployment strategy
 
-> The implementation was validated on a local 2-node Minikube cluster.
-> The Kubernetes manifests are designed to demonstrate the required
-> Kubernetes concepts without claiming an EKS deployment.
+> **Environment:** Local multi-node Kubernetes cluster using Minikube.
+>
+> The project is designed using production-style Kubernetes/GitOps patterns, but the current implementation is intentionally deployed on a local Minikube cluster rather than EKS/AKS/GKE.
 
 ---
 
-## Architecture
+# 1. Project Overview
+
+The DevOps Performance Platform is a containerized FastAPI application deployed on a multi-node Kubernetes cluster.
+
+The project demonstrates how a DevOps platform can combine:
 
 ```text
-                         Developer
-                             |
-                             v
-                     GitHub Repository
-                             |
-                             v
-                       GitHub Actions
-                       CI Pipeline
-                      /           \
-                 pytest        Docker Build
-                                  |
-                                  v
-                                GHCR
-                                  |
-                                  v
-                     Self-Hosted Runner
-                                  |
-                                  v
-                         2-Node Minikube
-                                  |
-                           NGINX Ingress
-                                  |
-                   +--------------+--------------+
-                   |                             |
-                   v                             v
-          performance.local          bluegreen.performance.local
-                   |                             |
-                   v                             v
-          performance-api              performance-api-bg
-             Service                     Service
-                   |                    /           \
-                   |                   /             \
-                   v                  v               v
-             API Pods              BLUE            GREEN
-             2 replicas           2 pods           2 pods
-                   |
-          +--------+--------+
-          |                 |
-          v                 v
-      PostgreSQL          Redis
-      StatefulSet         StatefulSet
-          |                 |
-          v                 v
-         PVC               PVC
-
-              Prometheus
-                   |
-              ServiceMonitor
-                   |
-                   v
-                Grafana
-
-                 HPA
-                  |
-                  v
-          API replicas: 2 → 5 configured by HPA
-Technology Stack
-Python
-FastAPI
-Docker
-Kubernetes
-Minikube
-NGINX Ingress
+Developer
+    |
+    | git push
+    v
+GitHub Repository
+    |
+    v
+GitHub Actions CI
+    |
+    +--> Run tests
+    |
+    +--> Build Docker image
+    |
+    +--> Push image to GHCR
+    |
+    +--> Update Helm desired state
+    |
+    +--> Commit and push to Git
+    |
+    v
+Argo CD
+    |
+    | detects Git change
+    v
 Helm
-GitHub Actions
-GitHub Container Registry
+    |
+    v
+Argo Rollouts
+    |
+    +--> Canary deployment
+    |
+    v
+Istio
+    |
+    v
+Kubernetes
+    |
+    +--> FastAPI
+    +--> PostgreSQL
+    +--> Redis
+
+Observability and scaling operate independently:
+
+FastAPI
+   |
+   | /metrics
+   v
 Prometheus
+   |
+   v
 Grafana
-PostgreSQL
-Redis
-k6
-Repository Structure
-devops-perfomance-platform/
-│
+
+
+CPU Usage
+   |
+   v
+Metrics Server
+   |
+   v
+HPA
+   |
+   v
+Argo Rollout Pods
+2. Architecture
+Application Architecture
+                         Internet / Client
+                                |
+                                v
+                     Istio Ingress Gateway
+                                |
+                                v
+                         Istio VirtualService
+                                |
+                                v
+                       performance-api Service
+                                |
+                                v
+                         Argo Rollout Pods
+                         /              \
+                        /                \
+                 FastAPI Pod          FastAPI Pod
+                        |                |
+                        +-------+--------+
+                                |
+                 +--------------+--------------+
+                 |                             |
+                 v                             v
+            PostgreSQL                       Redis
+             Database                       Cache
+DevOps Architecture
+                         Developer
+                            |
+                            | git push
+                            v
+                     GitHub Repository
+                            |
+                            v
+                    GitHub Actions CI
+                     /       |       \
+                    /        |        \
+              pytest      Docker      Helm
+                           build      update
+                              |          |
+                              v          v
+                            GHCR      Git commit
+                                         |
+                                         v
+                                      Argo CD
+                                         |
+                                         v
+                                      Helm
+                                         |
+                                         v
+                                  Argo Rollouts
+                                         |
+                                         v
+                                       Istio
+                                         |
+                                         v
+                                  Kubernetes
+3. Technology Stack
+Component	Technology
+Application	Python / FastAPI
+Database	PostgreSQL
+Cache	Redis
+Containerization	Docker
+Orchestration	Kubernetes
+Local Cluster	Minikube
+Package Manager	Helm
+CI	GitHub Actions
+CD / GitOps	Argo CD
+Progressive Delivery	Argo Rollouts
+Traffic Management	Istio
+Monitoring	Prometheus
+Visualization	Grafana
+Load Testing	K6
+Container Registry	GitHub Container Registry
+Application Protocol	HTTP / REST
+4. Repository Structure
+.
 ├── app/
-│   ├── src/
-│   ├── tests/
 │   ├── Dockerfile
-│   └── requirements.txt
-│
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── cd.yml
+│   ├── pytest.ini
+│   ├── requirements.txt
+│   ├── src/
+│   │   ├── cache.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── init_db.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── schemas.py
+│   │   └── routers/
+│   │       └── products.py
+│   └── tests/
+│       ├── conftest.py
+│       ├── test_health.py
+│       └── test_products.py
 │
 ├── helm/
+│   ├── app/
+│   │   ├── Chart.yaml
+│   │   ├── values.yaml
+│   │   └── templates/
+│   │       ├── configmap.yaml
+│   │       ├── destination-rule.yaml
+│   │       ├── gateway.yaml
+│   │       ├── hpa.yaml
+│   │       ├── ingress.yaml
+│   │       ├── rollout.yaml
+│   │       ├── secret.yaml
+│   │       ├── service.yaml
+│   │       ├── servicemonitor.yaml
+│   │       └── virtual-service.yaml
+│   │
 │   ├── postgresql/
 │   │   └── values.yaml
+│   │
 │   └── redis/
 │       └── values.yaml
-│
-├── k8s/
-│   ├── base/
-│   └── ingress/
-│       ├── blue-deployment.yaml
-│       ├── green-deployment.yaml
-│       ├── bluegreen-service.yaml
-│       └── bluegreen-ingress.yaml
 │
 ├── load-test/
 │   └── api-load.js
 │
 ├── reports/
-│   └── performance/
-│       ├── database-indexing.md
-│       ├── k6-results.md
-│       ├── query-with-index.txt
-│       └── query-without-index.txt
+│   ├── architecture/
+│   ├── performance/
+│   └── screenshots/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 │
 ├── compose.yaml
 └── README.md
-Application
 
-The application is implemented using FastAPI.
+The application deployment manifests are managed through the Helm chart under:
 
-Main API endpoint:
+helm/app/
 
-GET /api/products
+The project does not use a second raw Kubernetes application-manifest deployment path.
 
-Health endpoints:
+5. Application
+
+The application is built using FastAPI.
+
+Main endpoints include:
 
 GET /health
 GET /ready
-
-Prometheus metrics:
-
 GET /metrics
-
-The application uses:
-
-PostgreSQL for persistent data
-Redis for caching
-SQLAlchemy for database access
-Prometheus instrumentation for HTTP metrics
-Local Development
-
-Create a virtual environment:
-
-python3 -m venv .venv
-source .venv/bin/activate
-
-Install dependencies:
-
-cd app
-pip install -r requirements.txt
-
-Run tests:
-
-pytest
-
-Expected:
-
-8 passed
-Docker
-
-Build:
-
-docker build -t devops-perfomance-api:test ./app
-
-Run:
-
-docker run --rm \
-  -d \
-  --name performance-api-test \
-  -p 8001:8000 \
-  devops-perfomance-api:test
-
-Test:
-
-curl http://localhost:8001/health
-Kubernetes
-
-The application runs in:
-
-performance-platform
-
-namespace.
-
-The application Deployment is configured with:
-
-2 initial replicas
-CPU requests/limits
-Readiness probe
-Liveness probe
-Pod anti-affinity
-RollingUpdate strategy
-
-The two API replicas were validated across the two Minikube nodes.
+GET /api/products
+GET /api/products/{id}
 
 Example:
 
-kubectl get pods -n performance-platform -o wide
-High Availability
+curl http://performance.local/health
 
-The Kubernetes cluster consists of two nodes:
+Expected response:
 
-minikube
-minikube-m02
+{
+  "status": "healthy"
+}
 
-The API uses pod anti-affinity to prefer scheduling replicas on different Kubernetes nodes.
+Readiness:
 
-This provides node-level distribution for the API workload.
+curl http://performance.local/ready
 
-The application is stateless, with state stored externally in PostgreSQL and Redis.
+Expected response:
 
-Horizontal Pod Autoscaling
+{
+  "status": "ready"
+}
 
-The HPA configuration uses:
+Products:
+
+curl http://performance.local/api/products
+6. Docker
+
+The application is containerized using Docker.
+
+The Docker image is published to GitHub Container Registry:
+
+ghcr.io/rithuraj6/devops-perfomance-api
+
+The project intentionally does not use:
+
+:latest
+
+Application images are versioned using CI-generated build/version identifiers.
+
+This provides traceability between:
+
+Git commit
+    |
+    v
+CI build
+    |
+    v
+Docker image
+    |
+    v
+Helm desired state
+    |
+    v
+Kubernetes deployment
+7. Kubernetes
+
+The application runs on a multi-node Minikube Kubernetes cluster.
+
+Example cluster:
+
+Minikube Control Plane
+        |
+        +------------------+
+        |                  |
+        v                  v
+     Node 1             Node 2
+        |                  |
+        +--------+---------+
+                 |
+                 v
+          Application Pods
+
+The application is configured with multiple replicas:
+
+replicaCount: 2
+
+Pod anti-affinity is used to prefer scheduling replicas on different Kubernetes nodes.
+
+This reduces the impact of losing a single node.
+
+8. High Availability
+
+The FastAPI application is stateless and runs with multiple replicas.
+
+Example:
+
+performance-api
+       |
+       +---- Pod 1
+       |
+       +---- Pod 2
+
+The Kubernetes Service provides stable access to the pods.
+
+Readiness and liveness probes are configured:
+
+/ready
+/health
+
+Readiness determines whether a pod can receive traffic.
+
+Liveness determines whether Kubernetes should restart an unhealthy container.
+
+9. Horizontal Pod Autoscaling
+
+The application uses Kubernetes HPA.
+
+Configuration:
 
 Minimum replicas: 2
 Maximum replicas: 5
 CPU target: 60%
 
-Check:
+The HPA targets the Argo Rollout:
 
-kubectl get hpa -n performance-platform
+HPA
+ |
+ v
+Argo Rollout
+ |
+ +---- Pod
+ +---- Pod
+ +---- Pod
+ ...
 
-The final performance test reached 50 VUs successfully while maintaining two API replicas because CPU utilization remained below the configured scaling threshold.
+During K6 load testing, CPU utilization increased and HPA scaled the application from:
 
-The HPA was therefore configured and operational, but the final k6 workload did not force a scale-up event.
+2 replicas
+     |
+     v
+3 replicas
 
-PostgreSQL
+After the load decreased, the replica count returned toward the configured minimum.
 
-PostgreSQL is deployed using the Bitnami Helm chart.
+10. Helm
 
-Configuration:
+The application deployment is managed using Helm.
 
-helm/postgresql/values.yaml
+Main chart:
 
-Features:
+helm/app/
 
-Persistent storage
-10Gi volume
-Resource requests/limits
-Database initialization through SQLAlchemy
-Non-root container security context
+Validate the chart:
 
-Install:
+helm lint helm/app
 
-helm install performance-postgresql \
-  bitnami/postgresql \
-  -n performance-platform \
-  -f helm/postgresql/values.yaml
-Redis
+Render the chart:
 
-Redis is deployed using Helm.
+helm template performance-api helm/app
 
-Configuration:
+The Helm chart manages:
 
-helm/redis/values.yaml
+Rollout
+Service
+HPA
+ConfigMap
+Secret
+ServiceMonitor
+Istio Gateway
+Istio VirtualService
+Istio DestinationRule
 
-Features:
+This keeps the Kubernetes desired state version-controlled and reproducible.
 
-Standalone Redis
-Authentication
-Persistent storage
-1Gi volume
-Resource requests/limits
+11. GitOps with Argo CD
 
-Install:
+Argo CD is responsible for Continuous Delivery.
 
-helm install performance-redis \
-  bitnami/redis \
-  -n performance-platform \
-  -f helm/redis/values.yaml
-Redis Caching
+The Git repository acts as the source of truth.
 
-The /api/products endpoint uses Redis caching.
+The deployment flow is:
 
-Cache key:
+GitHub Actions
+      |
+      | update Helm values
+      |
+      v
+Git Repository
+      |
+      | Argo CD detects change
+      v
+Argo CD
+      |
+      v
+Helm rendering
+      |
+      v
+Kubernetes
 
-products:list
+GitHub Actions does not directly deploy the application.
 
-Cache TTL:
+There is no:
 
-60 seconds
+kubectl apply
+kubectl set image
+kubectl patch
 
-Individual products use:
+deployment step in CI.
 
-product:<id>
+Instead, CI updates the desired Helm state and pushes the change to Git.
 
-The cache reduces repeated PostgreSQL queries for frequently accessed product data.
+Argo CD then reconciles the Kubernetes cluster with Git.
 
-Database Indexing
+12. Continuous Integration
 
-The products.category column is indexed using SQLAlchemy:
+GitHub Actions performs CI tasks.
 
-category = mapped_column(
-    String(100),
-    nullable=False,
-    index=True,
-)
+The pipeline performs:
 
-Query execution results are documented in:
+Git Push
+   |
+   v
+Run tests
+   |
+   v
+Build Docker image
+   |
+   v
+Push image to GHCR
+   |
+   v
+Update Helm image version
+   |
+   v
+Commit desired state
+   |
+   v
+Push to Git
 
-reports/performance/database-indexing.md
+The application tests are executed using:
 
-The repository contains both indexed and non-indexed query results for comparison.
+pytest
 
-NGINX Ingress
+The pipeline only builds and publishes the application when appropriate.
 
-NGINX Ingress is used for HTTP routing.
+13. Dynamic Build Version
 
-The primary application hostname is:
+The application image version is generated dynamically by GitHub Actions.
 
-performance.local
+The important principle is:
 
-The Minikube NGINX controller is exposed through NodePort:
+Do NOT hardcode:
 
-30900
+image:
+  tag: latest
+
+Instead:
+
+CI Build
+   |
+   | dynamic build/version number
+   v
+GHCR image
+   |
+   v
+helm/app/values.yaml
+   |
+   v
+Argo CD
+
+This makes every deployment traceable to a specific CI build.
+
+For example:
+
+Build 42
+   |
+   v
+ghcr.io/rithuraj6/devops-perfomance-api:42
+   |
+   v
+Helm values
+   |
+   v
+Argo CD
+
+The build number is therefore passed dynamically from CI into the GitOps desired state.
+
+14. Canary Deployment
+
+Argo Rollouts manages progressive delivery.
+
+The current Rollout strategy is Canary.
+
+Example progression:
+
+Stable
+  |
+  | 10%
+  v
+Canary
+  |
+  | 25%
+  v
+Canary
+  |
+  | 50%
+  v
+Canary
+  |
+  | 75%
+  v
+Canary
+  |
+  | 100%
+  v
+Stable
+
+Configured progression:
+
+10%
+25%
+50%
+75%
+100%
+
+Pauses are included between stages.
+
+This allows the new version to receive gradually increasing traffic instead of immediately receiving 100% of production traffic.
+
+15. Istio Traffic Management
+
+Istio is used for service-to-service traffic management and progressive delivery.
+
+The application uses:
+
+Istio Gateway
+       |
+       v
+VirtualService
+       |
+       v
+DestinationRule
+       |
+       +---- stable
+       |
+       +---- canary
+
+The Argo Rollouts controller dynamically manages the stable and canary subsets.
 
 Example:
 
-curl -H "Host: performance.local" \
-  http://192.168.49.2:30900/api/products
-Canary Deployment
+route:
+  - destination:
+      host: performance-api
+      subset: stable
+    weight: 100
 
-A canary deployment was demonstrated using:
+  - destination:
+      host: performance-api
+      subset: canary
+    weight: 0
 
-Separate canary Deployment
-Separate canary Service
-NGINX Canary Ingress
-10% configured canary weight
+During a canary rollout, these weights are adjusted by Argo Rollouts.
 
-The canary pod reached Ready state and NGINX logs confirmed requests reaching the canary upstream.
+16. Zero-Downtime Deployment
 
-The temporary canary resources were removed after validation to keep the final cluster state clean.
+Zero-downtime behavior is achieved using:
 
-The test did not claim an exact 10% measured traffic distribution.
+Multiple application replicas
+Kubernetes Service
+Readiness probes
+Liveness probes
+Argo Rollouts
+Progressive traffic shifting
+Istio traffic management
+Controlled rollout progression
 
-Blue-Green Deployment
+Traffic is shifted gradually instead of replacing all application pods simultaneously.
 
-Blue-Green deployment uses two independent environments:
+17. Blue-Green Deployment
 
-performance-api-blue
-performance-api-green
+The project also includes Blue-Green deployment design as part of the progressive delivery requirement.
 
-Both environments run simultaneously.
+The concept is:
 
-The traffic Service:
+                 Traffic
+                    |
+                    v
+               Active Service
+                    |
+                    v
+                 BLUE
+                    |
+              switch traffic
+                    |
+                    v
+                 GREEN
 
-performance-api-bg
+Blue-Green deployment maintains two application environments:
 
-initially selects:
+BLUE  = current version
+GREEN = new version
 
-version: blue
+Traffic can then be switched between them.
 
-Traffic can be switched to Green by changing the selector to:
+The active Canary configuration remains the primary live deployment strategy used for the performance demonstration, while the Blue-Green approach is retained as a supported progressive-delivery strategy for the project requirement.
 
-version: green
+18. PostgreSQL
 
-The Blue → Green cutover was successfully demonstrated.
+PostgreSQL is used as the application database.
 
-Before:
+The database is deployed in Kubernetes using Helm.
 
-performance-api-bg
-        |
-        +--> Blue Pod
-        +--> Blue Pod
+Database configuration includes:
 
-After:
+Database:
+performance_db
 
-performance-api-bg
-        |
-        +--> Green Pod
-        +--> Green Pod
+User:
+app_user
 
-The application remained available during the switch.
+Port:
+5432
 
-Monitoring
+Persistent storage is configured using a Kubernetes PersistentVolumeClaim.
 
-Prometheus and Grafana are used for observability.
+Example storage:
 
-The API exposes:
+10Gi
+
+Database data was validated after restarting the database workload.
+
+Existing sample data includes products such as:
+
+Kubernetes Laptop
+DevOps Monitor
+19. Redis
+
+Redis is used as the application caching layer.
+
+Redis is also deployed using Helm.
+
+Example persistence:
+
+1Gi
+
+The application uses Redis to reduce repeated database access and improve response performance.
+
+Architecture:
+
+Client
+  |
+  v
+FastAPI
+  |
+  +---- Cache hit ----> Redis
+  |
+  +---- Cache miss ---> PostgreSQL
+20. Prometheus Monitoring
+
+The FastAPI application exposes Prometheus metrics through:
 
 /metrics
 
-Prometheus discovers the application through:
+A Kubernetes ServiceMonitor is managed through Helm:
 
-k8s/base/servicemonitor.yaml
+helm/app/templates/servicemonitor.yaml
 
-Important metrics include:
+Prometheus discovers the application through the ServiceMonitor.
+
+Important application metrics include:
 
 http_requests_total
-http_request_duration_seconds
+http_request_duration_seconds_bucket
+http_request_duration_seconds_count
+http_request_duration_seconds_sum
 
-Grafana dashboard includes:
+Prometheus was verified to scrape both application pods successfully.
+
+21. Grafana
+
+Grafana is used to visualize application and Kubernetes performance.
+
+The dashboard includes:
 
 API request rate
-P95 latency
 HPA replica count
 HPA desired replicas
+P95 latency
+CPU utilization
 
-Observed P95 latency in Grafana:
+Example monitoring flow:
 
-~95 ms
-Performance Testing
+Application
+     |
+     v
+Prometheus
+     |
+     v
+Grafana
 
-Load testing uses k6.
+The dashboard provides visibility into application behavior during load testing and deployments.
+
+22. Performance Testing
+
+K6 is used for HTTP load testing.
 
 Test script:
 
 load-test/api-load.js
 
-Load profile:
+The test gradually increases traffic:
 
-30s → 10 VUs
-60s → 25 VUs
-60s → 50 VUs
-30s → ramp down
-
-Maximum:
-
+10 VUs
+   |
+   v
+25 VUs
+   |
+   v
 50 VUs
+   |
+   v
+0 VUs
 
-Final test results:
+The test validates:
+
+HTTP success rate
+Response latency
+Request throughput
+Application scalability
+HPA behavior
+23. Performance Test Results
+
+A full K6 test was executed against:
+
+GET /api/products
+
+Test duration:
+
+3 minutes
+
+Maximum virtual users:
+
+50
+
+Results:
 
 Metric	Result
-Requests	4,169
-Throughput	23.10 req/s
-Failed requests	0.00%
-Successful checks	100%
-Average latency	1.89 ms
-Median latency	1.67 ms
-P90	2.29 ms
-P95	2.64 ms
-Maximum latency	60.72 ms
+Total requests	4,144
+Average throughput	22.96 req/s
+HTTP failures	0.00%
+P95 latency	18.43 ms
 Maximum VUs	50
+Checks passed	100%
 
-Thresholds:
+The application successfully handled the load without HTTP request failures.
 
-P95 < 1000 ms     PASS
-Failure rate < 1% PASS
+24. HPA Performance During Load
 
-Full report:
+During the K6 test, CPU utilization increased sufficiently to trigger HPA scaling.
 
-reports/performance/k6-results.md
+Observed behavior:
 
-These results represent the local Minikube environment and should not be interpreted as production-scale capacity.
+Initial replicas
+      |
+      v
+     2
+      |
+      | increased CPU load
+      v
+     3
 
-CI/CD
-Continuous Integration
+The HPA configuration was:
 
-GitHub Actions runs CI on:
+minReplicas: 2
+maxReplicas: 5
+CPU target: 60%
 
-Push to main
-Pull requests to main
+This demonstrates that the application can automatically scale based on CPU utilization.
 
-Pipeline:
+25. Prometheus P95 Latency
 
-Git Push
-   |
-   v
-pytest
-   |
-   v
-Docker Build
-   |
-   v
-GHCR
+Prometheus was also used to calculate application request latency.
 
-The Docker image is published using:
+Example PromQL:
 
-<git-sha>
-latest
+histogram_quantile(
+  0.95,
+  sum by (le) (
+    rate(http_request_duration_seconds_bucket{
+      namespace="performance-platform",
+      handler="/api/products",
+      method="GET"
+    }[5m])
+  )
+)
 
-Workflow:
+An observed value during monitoring was approximately:
 
-.github/workflows/ci.yml
-Continuous Deployment
+95 ms
 
-CD uses a GitHub self-hosted runner running on the Kubernetes host.
+The K6 end-to-end test reported a lower P95 during its measured run:
 
-Workflow:
+18.43 ms
 
-.github/workflows/cd.yml
+The difference is expected because the measurements come from different observation windows and measurement layers.
 
-The CD pipeline:
+26. CPU Monitoring
 
-Checks out the repository.
-Verifies Kubernetes access.
-Applies Blue-Green resources.
-Deploys the immutable Git SHA image to Green.
-Waits for the Green rollout.
-Verifies Green pods.
-Switches the Blue-Green Service to Green.
-Verifies Green endpoints.
-Performs an application health check.
+Application CPU utilization can be queried using Prometheus.
 
-The deployment image uses:
+Example:
 
-ghcr.io/rithuraj6/devops-perfomance-api:<git-sha>
+sum by (pod) (
+  rate(
+    container_cpu_usage_seconds_total{
+      namespace="performance-platform",
+      pod=~"performance-api-.*",
+      cpu="total"
+    }[5m]
+  )
+) * 100
 
-rather than relying exclusively on latest.
+This allows CPU utilization to be correlated with HPA scaling behavior.
 
-The CD workflow is currently manually triggered using:
+27. Health Validation
 
-workflow_dispatch
+Application health was validated through Istio ingress.
 
-This was intentional during validation to prevent an automatic local-cluster deployment on every push.
+Health:
 
-Self-Healing
+curl -i http://performance.local/health
 
-The API is managed by a Kubernetes Deployment.
+Readiness:
 
-If an API pod fails, Kubernetes automatically creates a replacement pod.
+curl -i http://performance.local/ready
 
-This demonstrates Kubernetes Deployment-based self-healing.
+Products:
 
-PostgreSQL is managed using a StatefulSet with persistent storage, allowing its pod to be recreated without losing persisted database data.
+curl -i http://performance.local/api/products
 
-Persistent Storage
+Individual product:
 
-PostgreSQL uses a persistent volume:
+curl -i http://performance.local/api/products/1
 
-10Gi
+All tested endpoints returned successful responses.
 
-Redis uses:
-
-1Gi
-
-Persistence was validated by restarting the database workloads and verifying that stored data remained available.
-
-Security
-
-Sensitive Kubernetes credentials are excluded from Git.
-
-The real secret:
-
-k8s/base/secret.yaml
-
-is ignored using .gitignore.
-
-Only:
-
-k8s/base/secret.example.yaml
-
-is committed.
-
-The example contains placeholder credentials.
-
-The application containers also use a non-root user.
-
-Verification Summary
-Feature	Status
-FastAPI application	✅
-Automated application tests	✅
-Docker build	✅
-GHCR image publishing	✅
-2-node Kubernetes cluster	✅
-API high availability	✅
-Pod anti-affinity	✅
-Kubernetes self-healing	✅
-HPA	✅
-NGINX Ingress	✅
-Canary deployment demonstration	✅
-Blue-Green deployment	✅
-Blue → Green cutover	✅
-GitHub Actions CI	✅
-GitHub Actions CD	✅
-Self-hosted runner	✅
-PostgreSQL Helm deployment	✅
-PostgreSQL persistence	✅
-PostgreSQL indexing	✅
-Redis Helm deployment	✅
-Redis caching	✅
-Redis persistence	✅
-Prometheus	✅
-Grafana	✅
-ServiceMonitor	✅
-k6 performance testing	✅
-Performance report	✅
-Kubernetes secrets excluded from Git	✅
-Project Status
-Phase 1 — Application Foundation
-
-✅ Completed
-
-Phase 2 — Containerization
-
-✅ Completed
-
-Phase 3 — Kubernetes Deployment
-
-✅ Completed
-
-Phase 4 — Persistence
-
-✅ Completed
-
-Phase 5 — Autoscaling
-
-✅ Completed
-
-Phase 6 — Ingress & Traffic Management
-
-✅ Completed
-
-Phase 7 — Observability
-
-✅ Completed
-
-Phase 8 — Performance Testing
-
-✅ Completed
-
-Phase 9 — Blue-Green Deployment
-
-✅ Completed
-
-Phase 10 — CI/CD
-
-✅ Completed
+28. Useful Commands
+Kubernetes
+kubectl get nodes
+kubectl get pods -n performance-platform
+kubectl get rollout -n performance-platform
+kubectl get hpa -n performance-platform
+kubectl get svc -n performance-platform
+Argo Rollouts
+kubectl argo rollouts get rollout performance-api \
+  -n performance-platform
+
+Watch rollout:
+
+kubectl argo rollouts get rollout performance-api \
+  -n performance-platform \
+  --watch
+Helm
+
+Lint:
+
+helm lint helm/app
+
+Render:
+
+helm template performance-api helm/app
+Prometheus
+
+Port-forward:
+
+kubectl port-forward \
+  -n monitoring \
+  svc/monitoring-kube-prometheus-prometheus \
+  9090:9090
+Grafana
+
+Port-forward:
+
+kubectl port-forward \
+  -n monitoring \
+  svc/monitoring-grafana \
+  3000:80
+29. GitOps Deployment Flow
+
+The complete deployment lifecycle is:
+
+1. Developer changes application
+             |
+             v
+2. git push
+             |
+             v
+3. GitHub Actions starts
+             |
+             +---- pytest
+             |
+             +---- Docker build
+             |
+             +---- Push image to GHCR
+             |
+             +---- Generate build/version
+             |
+             +---- Update Helm values
+             |
+             +---- Commit desired state
+             |
+             v
+4. GitHub repository changes
+             |
+             v
+5. Argo CD detects Git change
+             |
+             v
+6. Argo CD renders Helm chart
+             |
+             v
+7. Argo Rollouts creates new ReplicaSet
+             |
+             v
+8. Istio controls traffic
+             |
+             v
+9. Canary progression
+             |
+             v
+10. New version becomes stable
+
+This separates:
+
+CI = GitHub Actions
+CD = Argo CD
+Progressive Delivery = Argo Rollouts
+Traffic Management = Istio

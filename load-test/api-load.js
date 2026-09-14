@@ -17,7 +17,7 @@ export const options = {
 
 export default function () {
   const response = http.get(
-    'http://performance.local:30900/api/products'
+    'http://performance.local:30670/api/products'
   );
 
   check(response, {
