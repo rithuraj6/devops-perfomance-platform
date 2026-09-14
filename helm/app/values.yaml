@@ -1,0 +1,48 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/rithuraj6/devops-perfomance-api
+  tag: "REPLACE_WITH_GIT_SHA"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
+
+config:
+  appEnv: production
+  databaseHost: performance-postgresql
+  databasePort: "5432"
+  databaseName: performance_db
+  databaseUser: app_user
+  redisHost: performance-redis-master
+  redisPort: "6379"
+
+secret:
+  databasePassword: app_password
+  redisPassword: redis_password
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+
+
+ingress:
+  enabled: true
+  className: nginx
+  host: performance.local
+  path: /

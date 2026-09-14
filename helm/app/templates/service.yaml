@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: performance-api
+  labels:
+    app: performance-api
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: performance-api
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
