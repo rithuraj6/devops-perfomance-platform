@@ -7,7 +7,7 @@ spec:
   hosts:
     - {{ .Values.istio.gateway.host | quote }}
   gateways:
-    - {{ .Values.istio.gateway.name }}
+    - istio-ingress/{{ .Values.istio.gateway.name }}
   http:
     - name: {{ .Values.istio.virtualService.routeName }}
       route:
