@@ -42,7 +42,17 @@ serviceMonitor:
 
 
 ingress:
-  enabled: true
+  enabled: false
   className: nginx
   host: performance.local
   path: /
+
+istio:
+  enabled: true
+  gateway:
+    name: performance-api-gateway
+    host: performance.local
+    port: 80
+  virtualService:
+    name: performance-api
+    routeName: primary

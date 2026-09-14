@@ -1,0 +1,15 @@
+{{- if .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: performance-api
+spec:
+  host: performance-api
+  subsets:
+    - name: stable
+      labels:
+        app: performance-api
+    - name: canary
+      labels:
+        app: performance-api
+{{- end }}

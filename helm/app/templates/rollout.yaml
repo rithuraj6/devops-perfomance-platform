@@ -1,18 +1,25 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: performance-api
   labels:
     app: performance-api
 spec:
   replicas: {{ .Values.replicaCount }}
+
+  revisionHistoryLimit: 3
+
   selector:
     matchLabels:
       app: performance-api
+
   template:
     metadata:
       labels:
         app: performance-api
+        version: "{{ .Values.image.tag }}"
+      annotations:
+        sidecar.istio.io/inject: "true"
     spec:
       affinity:
         podAntiAffinity:
@@ -23,29 +30,70 @@ spec:
                 labelSelector:
                   matchLabels:
                     app: performance-api
+
       containers:
         - name: api
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+
           ports:
             - name: http
               containerPort: 8000
+
           envFrom:
             - configMapRef:
                 name: performance-platform-config
             - secretRef:
                 name: performance-platform-secret
+
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+
           readinessProbe:
             httpGet:
               path: /ready
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
+
           livenessProbe:
             httpGet:
               path: /health
               port: http
             initialDelaySeconds: 10
             periodSeconds: 20
+
+  strategy:
+    canary:
+      trafficRouting:
+        istio:
+          virtualService:
+            name: performance-api
+            routes:
+              - primary
+          destinationRule:
+            name: performance-api
+            canarySubsetName: canary
+            stableSubsetName: stable
+
+
+
+
+      steps:
+        - setWeight: 10
+        - pause:
+            duration: 30s
+
+        - setWeight: 25
+        - pause:
+            duration: 30s
+
+        - setWeight: 50
+        - pause:
+            duration: 60s
+
+        - setWeight: 75
+        - pause:
+            duration: 60s
+
+        - setWeight: 100

@@ -1,0 +1,22 @@
+{{- if .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ .Values.istio.virtualService.name }}
+spec:
+  hosts:
+    - {{ .Values.istio.gateway.host | quote }}
+  gateways:
+    - {{ .Values.istio.gateway.name }}
+  http:
+    - name: {{ .Values.istio.virtualService.routeName }}
+      route:
+        - destination:
+            host: performance-api
+            subset: stable
+          weight: 100
+        - destination:
+            host: performance-api
+            subset: canary
+          weight: 0
+{{- end }}
