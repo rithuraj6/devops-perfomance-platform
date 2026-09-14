@@ -20,6 +20,7 @@ spec:
         version: "{{ .Values.image.tag }}"
       annotations:
         sidecar.istio.io/inject: "true"
+
     spec:
       affinity:
         podAntiAffinity:
@@ -63,28 +64,28 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 20
 
-    strategy:
-      {{- if eq .Values.strategy.type "canary" }}
-      canary:
-        trafficRouting:
-          istio:
-            virtualService:
-              name: performance-api
-              routes:
-                - primary
-            destinationRule:
-              name: performance-api
-              canarySubsetName: canary
-              stableSubsetName: stable
+  strategy:
+    {{ if eq .Values.strategy.type "canary" }}
+    canary:
+      trafficRouting:
+        istio:
+          virtualService:
+            name: performance-api
+            routes:
+              - primary
+          destinationRule:
+            name: performance-api
+            canarySubsetName: canary
+            stableSubsetName: stable
 
-        steps:
-          {{- toYaml .Values.strategy.canary.steps | nindent 8 }}
+      steps:
+        {{ toYaml .Values.strategy.canary.steps | nindent 8 }}
 
-      {{- else if eq .Values.strategy.type "blueGreen" }}
-      blueGreen:
-        activeService: {{ .Values.strategy.blueGreen.activeService }}
-        previewService: {{ .Values.strategy.blueGreen.previewService }}
-        autoPromotionEnabled: {{ .Values.strategy.blueGreen.autoPromotionEnabled }}
-        scaleDownDelaySeconds: {{ .Values.strategy.blueGreen.scaleDownDelaySeconds }}
+    {{ else if eq .Values.strategy.type "blueGreen" }}
+    blueGreen:
+      activeService: {{ .Values.strategy.blueGreen.activeService }}
+      previewService: {{ .Values.strategy.blueGreen.previewService }}
+      autoPromotionEnabled: {{ .Values.strategy.blueGreen.autoPromotionEnabled }}
+      scaleDownDelaySeconds: {{ .Values.strategy.blueGreen.scaleDownDelaySeconds }}
 
-      {{- end }}
+    {{ end }}
