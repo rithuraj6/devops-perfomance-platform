@@ -40,3 +40,5 @@ app.include_router(products_router)
 
 
 Instrumentator().instrument(app).expose(app)
+
+# Canary deployment validation
