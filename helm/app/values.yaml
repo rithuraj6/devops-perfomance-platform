@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: ghcr.io/rithuraj6/devops-perfomance-api
-  tag: "18"
+  tag: "19"
   pullPolicy: IfNotPresent
 
 service:
