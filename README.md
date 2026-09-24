@@ -1,176 +1,227 @@
-# DevOps Performance Platform
+<div align="center">
 
-A production-style DevOps and Kubernetes performance engineering project demonstrating:
+# ⚡ DevOps Performance Platform
+### Production-Style Kubernetes & GitOps Performance Engineering
 
-- Containerized FastAPI application
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=00C7B7)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+
+![ArgoCD](https://img.shields.io/badge/Argo%20CD-EF7B4D?style=flat-square&logo=argo&logoColor=white)
+![ArgoRollouts](https://img.shields.io/badge/Argo%20Rollouts-F4511E?style=flat-square&logo=argo&logoColor=white)
+![Istio](https://img.shields.io/badge/Istio-466BB0?style=flat-square&logo=istio&logoColor=white)
+![Helm](https://img.shields.io/badge/Helm-0F1689?style=flat-square&logo=helm&logoColor=white)
+![GitHubActions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=flat-square&logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?style=flat-square&logo=grafana&logoColor=white)
+![K6](https://img.shields.io/badge/K6-7D64FF?style=flat-square&logo=k6&logoColor=white)
+
+![HPA](https://img.shields.io/badge/HPA-enabled-brightgreen?style=flat-square)
+![Zero Downtime](https://img.shields.io/badge/deployments-zero--downtime-success?style=flat-square)
+![Failures](https://img.shields.io/badge/HTTP%20failures-0.00%25-brightgreen?style=flat-square)
+![P95](https://img.shields.io/badge/P95%20latency-18.43ms-blue?style=flat-square)
+![Cluster](https://img.shields.io/badge/cluster-Minikube-informational?style=flat-square)
+
+</div>
+
+<br>
+
+A production-style DevOps and Kubernetes **performance engineering** project demonstrating a full path from commit to canary rollout — containerized FastAPI, GitOps delivery, progressive traffic shifting, autoscaling, and full observability.
+
+> 🧪 **Environment:** Local multi-node Kubernetes cluster using **Minikube.**
+> The project is designed using production-style Kubernetes/GitOps patterns, but is intentionally deployed on a local Minikube cluster rather than EKS/AKS/GKE.
+
+<br>
+
+## ✨ What This Project Demonstrates
+
+<table>
+<tr>
+<td valign="top" width="33%">
+
+**🏗️ Platform**
+- Containerized FastAPI app
 - PostgreSQL database
 - Redis caching
 - Kubernetes high availability
 - Horizontal Pod Autoscaling
-- Helm-based application deployment
-- Argo CD GitOps continuous delivery
-- Argo Rollouts progressive delivery
+- Immutable image versions
+- Zero-downtime deployments
+
+</td>
+<td valign="top" width="33%">
+
+**🔄 Delivery**
+- Helm-based deployment
+- Argo CD GitOps
+- Argo Rollouts (canary)
 - Istio traffic management
-- Canary deployments
+- Blue-green design
+- GitHub Actions CI
+
+</td>
+<td valign="top" width="33%">
+
+**📊 Observability**
 - Prometheus monitoring
 - Grafana dashboards
 - K6 performance testing
-- GitHub Actions CI
-- Immutable application image versions
-- Zero-downtime deployment strategy
+- P95 latency tracking
+- CPU-driven autoscaling
 
-> **Environment:** Local multi-node Kubernetes cluster using Minikube.
->
-> The project is designed using production-style Kubernetes/GitOps patterns, but the current implementation is intentionally deployed on a local Minikube cluster rather than EKS/AKS/GKE.
+</td>
+</tr>
+</table>
 
----
+<br>
 
-# 1. Project Overview
+## 1️⃣ Project Overview
 
-The DevOps Performance Platform is a containerized FastAPI application deployed on a multi-node Kubernetes cluster.
+The DevOps Performance Platform is a containerized FastAPI application deployed on a multi-node Kubernetes cluster, combining **CI, GitOps delivery, progressive rollout, service mesh routing, and observability-driven autoscaling.**
 
-The project demonstrates how a DevOps platform can combine:
+```mermaid
+flowchart TD
+    Dev([👨‍💻 Developer]) -->|git push| GH[(📦 GitHub Repository)]
+    GH --> CI[⚙️ GitHub Actions CI]
 
-```text
-Developer
-    |
-    | git push
-    v
-GitHub Repository
-    |
-    v
-GitHub Actions CI
-    |
-    +--> Run tests
-    |
-    +--> Build Docker image
-    |
-    +--> Push image to GHCR
-    |
-    +--> Update Helm desired state
-    |
-    +--> Commit and push to Git
-    |
-    v
-Argo CD
-    |
-    | detects Git change
-    v
-Helm
-    |
-    v
-Argo Rollouts
-    |
-    +--> Canary deployment
-    |
-    v
-Istio
-    |
-    v
-Kubernetes
-    |
-    +--> FastAPI
-    +--> PostgreSQL
-    +--> Redis
+    subgraph CIPIPE[" "]
+        direction LR
+        T[🧪 Run Tests] --> B[🐳 Build Image]
+        B --> P[📤 Push to GHCR]
+        P --> U[📝 Update Helm State]
+        U --> C[✅ Commit & Push]
+    end
 
-Observability and scaling operate independently:
+    CI --> CIPIPE
+    CIPIPE --> ACD[🔄 Argo CD]
+    ACD -->|detects Git change| HL[📦 Helm]
+    HL --> AR[🚀 Argo Rollouts]
+    AR -->|canary| IS[🔀 Istio]
+    IS --> K8S[☸️ Kubernetes]
 
-FastAPI
-   |
-   | /metrics
-   v
-Prometheus
-   |
-   v
-Grafana
+    K8S --> F[🧩 FastAPI]
+    K8S --> PG[(🗄️ PostgreSQL)]
+    K8S --> R[(⚡ Redis)]
 
+    style Dev fill:#6366f1,color:#fff,stroke:#4338ca
+    style GH fill:#24292e,color:#fff,stroke:#000
+    style CI fill:#2088FF,color:#fff,stroke:#0b5ed7
+    style ACD fill:#EF7B4D,color:#fff,stroke:#c2531f
+    style HL fill:#0F1689,color:#fff,stroke:#000060
+    style AR fill:#F4511E,color:#fff,stroke:#b8340f
+    style IS fill:#466BB0,color:#fff,stroke:#2d4a80
+    style K8S fill:#326CE5,color:#fff,stroke:#1e40af
+    style F fill:#00C7B7,color:#000,stroke:#059669
+    style PG fill:#4169E1,color:#fff,stroke:#1e3a8a
+    style R fill:#DC382D,color:#fff,stroke:#991b1b
+```
 
-CPU Usage
-   |
-   v
-Metrics Server
-   |
-   v
-HPA
-   |
-   v
-Argo Rollout Pods
-2. Architecture
-Application Architecture
-                         Internet / Client
-                                |
-                                v
-                     Istio Ingress Gateway
-                                |
-                                v
-                         Istio VirtualService
-                                |
-                                v
-                       performance-api Service
-                                |
-                                v
-                         Argo Rollout Pods
-                         /              \
-                        /                \
-                 FastAPI Pod          FastAPI Pod
-                        |                |
-                        +-------+--------+
-                                |
-                 +--------------+--------------+
-                 |                             |
-                 v                             v
-            PostgreSQL                       Redis
-             Database                       Cache
-DevOps Architecture
-                         Developer
-                            |
-                            | git push
-                            v
-                     GitHub Repository
-                            |
-                            v
-                    GitHub Actions CI
-                     /       |       \
-                    /        |        \
-              pytest      Docker      Helm
-                           build      update
-                              |          |
-                              v          v
-                            GHCR      Git commit
-                                         |
-                                         v
-                                      Argo CD
-                                         |
-                                         v
-                                      Helm
-                                         |
-                                         v
-                                  Argo Rollouts
-                                         |
-                                         v
-                                       Istio
-                                         |
-                                         v
-                                  Kubernetes
-3. Technology Stack
-Component	Technology
-Application	Python / FastAPI
-Database	PostgreSQL
-Cache	Redis
-Containerization	Docker
-Orchestration	Kubernetes
-Local Cluster	Minikube
-Package Manager	Helm
-CI	GitHub Actions
-CD / GitOps	Argo CD
-Progressive Delivery	Argo Rollouts
-Traffic Management	Istio
-Monitoring	Prometheus
-Visualization	Grafana
-Load Testing	K6
-Container Registry	GitHub Container Registry
-Application Protocol	HTTP / REST
-4. Repository Structure
+**Observability and scaling operate independently of the delivery pipeline:**
+
+```mermaid
+flowchart LR
+    F[🧩 FastAPI /metrics] --> P[📈 Prometheus]
+    P --> G[📊 Grafana]
+
+    CPU[📟 CPU Usage] --> MS[📏 Metrics Server]
+    MS --> HPA[📐 HPA]
+    HPA --> RP[🚀 Argo Rollout Pods]
+
+    style F fill:#00C7B7,color:#000
+    style P fill:#E6522C,color:#fff
+    style G fill:#F46800,color:#fff
+    style HPA fill:#22c55e,color:#fff
+    style RP fill:#F4511E,color:#fff
+```
+
+<br>
+
+## 2️⃣ Architecture
+
+### 🧩 Application Architecture
+
+```mermaid
+flowchart TD
+    Client([🌐 Internet / Client]) --> GW[🚪 Istio Ingress Gateway]
+    GW --> VS[🔀 Istio VirtualService]
+    VS --> SVC[🧭 performance-api Service]
+    SVC --> RP{Argo Rollout Pods}
+    RP --> P1[🧩 FastAPI Pod]
+    RP --> P2[🧩 FastAPI Pod]
+    P1 --> PG[(🗄️ PostgreSQL)]
+    P1 --> R[(⚡ Redis)]
+    P2 --> PG
+    P2 --> R
+
+    style Client fill:#6366f1,color:#fff
+    style GW fill:#466BB0,color:#fff
+    style VS fill:#466BB0,color:#fff
+    style SVC fill:#0ea5e9,color:#fff
+    style P1 fill:#00C7B7,color:#000
+    style P2 fill:#00C7B7,color:#000
+    style PG fill:#4169E1,color:#fff
+    style R fill:#DC382D,color:#fff
+```
+
+### ⚙️ DevOps Architecture
+
+```mermaid
+flowchart TD
+    Dev([👨‍💻 Developer]) -->|git push| GH[(📦 GitHub Repository)]
+    GH --> CI[⚙️ GitHub Actions CI]
+    CI --> PT[🧪 pytest]
+    CI --> DB[🐳 Docker Build]
+    CI --> HU[📝 Helm Update]
+    DB --> GHCR[(📦 GHCR)]
+    HU --> GC[✅ Git Commit]
+    GHCR --> ACD[🔄 Argo CD]
+    GC --> ACD
+    ACD --> HL[📦 Helm]
+    HL --> AR[🚀 Argo Rollouts]
+    AR --> IS[🔀 Istio]
+    IS --> K8S[☸️ Kubernetes]
+
+    style Dev fill:#6366f1,color:#fff
+    style GH fill:#24292e,color:#fff
+    style CI fill:#2088FF,color:#fff
+    style GHCR fill:#2496ED,color:#fff
+    style ACD fill:#EF7B4D,color:#fff
+    style AR fill:#F4511E,color:#fff
+    style IS fill:#466BB0,color:#fff
+    style K8S fill:#326CE5,color:#fff
+```
+
+<br>
+
+## 3️⃣ Technology Stack
+
+| Component | Technology |
+|---|---|
+| 🧩 **Application** | Python / FastAPI |
+| 🗄️ **Database** | PostgreSQL |
+| ⚡ **Cache** | Redis |
+| 🐳 **Containerization** | Docker |
+| ☸️ **Orchestration** | Kubernetes |
+| 🧪 **Local Cluster** | Minikube |
+| 📦 **Package Manager** | Helm |
+| ⚙️ **CI** | GitHub Actions |
+| 🔄 **CD / GitOps** | Argo CD |
+| 🚀 **Progressive Delivery** | Argo Rollouts |
+| 🔀 **Traffic Management** | Istio |
+| 📈 **Monitoring** | Prometheus |
+| 📊 **Visualization** | Grafana |
+| 🧪 **Load Testing** | K6 |
+| 📦 **Container Registry** | GitHub Container Registry |
+| 🌐 **Application Protocol** | HTTP / REST |
+
+<br>
+
+## 4️⃣ Repository Structure
+
+```
 .
 ├── app/
 │   ├── Dockerfile
@@ -227,364 +278,275 @@ Application Protocol	HTTP / REST
 │
 ├── compose.yaml
 └── README.md
+```
 
-The application deployment manifests are managed through the Helm chart under:
+> ℹ️ Application deployment manifests are managed entirely through the Helm chart under `helm/app/`. The project does not use a second raw Kubernetes manifest deployment path.
 
-helm/app/
+<br>
 
-The project does not use a second raw Kubernetes application-manifest deployment path.
+## 5️⃣ Application
 
-5. Application
+Built using **FastAPI**. Main endpoints:
 
-The application is built using FastAPI.
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/health` | Liveness check |
+| `GET` | `/ready` | Readiness check |
+| `GET` | `/metrics` | Prometheus metrics |
+| `GET` | `/api/products` | List products |
+| `GET` | `/api/products/{id}` | Get a single product |
 
-Main endpoints include:
-
-GET /health
-GET /ready
-GET /metrics
-GET /api/products
-GET /api/products/{id}
-
-Example:
-
+```bash
 curl http://performance.local/health
-
-Expected response:
-
-{
-  "status": "healthy"
-}
-
-Readiness:
+# { "status": "healthy" }
 
 curl http://performance.local/ready
-
-Expected response:
-
-{
-  "status": "ready"
-}
-
-Products:
+# { "status": "ready" }
 
 curl http://performance.local/api/products
-6. Docker
+```
 
-The application is containerized using Docker.
+<br>
 
-The Docker image is published to GitHub Container Registry:
+## 6️⃣ Docker
 
+The application is containerized using Docker and published to **GitHub Container Registry**:
+
+```
 ghcr.io/rithuraj6/devops-perfomance-api
+```
 
-The project intentionally does not use:
+🚫 The project intentionally **does not** use `:latest`. Every image is versioned with a CI-generated build identifier, giving full traceability:
 
-:latest
+```mermaid
+flowchart LR
+    A[🔀 Git Commit] --> B[⚙️ CI Build]
+    B --> C[🐳 Docker Image]
+    C --> D[📦 Helm Desired State]
+    D --> E[☸️ Kubernetes Deployment]
 
-Application images are versioned using CI-generated build/version identifiers.
+    style A fill:#24292e,color:#fff
+    style B fill:#2088FF,color:#fff
+    style C fill:#2496ED,color:#fff
+    style D fill:#0F1689,color:#fff
+    style E fill:#326CE5,color:#fff
+```
 
-This provides traceability between:
+<br>
 
-Git commit
-    |
-    v
-CI build
-    |
-    v
-Docker image
-    |
-    v
-Helm desired state
-    |
-    v
-Kubernetes deployment
-7. Kubernetes
+## 7️⃣ Kubernetes
 
-The application runs on a multi-node Minikube Kubernetes cluster.
+The application runs on a **multi-node Minikube** cluster.
 
-Example cluster:
+```mermaid
+flowchart TD
+    CP[🎛️ Minikube Control Plane] --> N1[🖥️ Node 1]
+    CP --> N2[🖥️ Node 2]
+    N1 --> Pods[📦 Application Pods]
+    N2 --> Pods
 
-Minikube Control Plane
-        |
-        +------------------+
-        |                  |
-        v                  v
-     Node 1             Node 2
-        |                  |
-        +--------+---------+
-                 |
-                 v
-          Application Pods
+    style CP fill:#326CE5,color:#fff
+    style N1 fill:#0ea5e9,color:#fff
+    style N2 fill:#0ea5e9,color:#fff
+    style Pods fill:#22c55e,color:#fff
+```
 
-The application is configured with multiple replicas:
-
+```yaml
 replicaCount: 2
+```
 
-Pod anti-affinity is used to prefer scheduling replicas on different Kubernetes nodes.
+Pod anti-affinity is used to prefer scheduling replicas on **different nodes**, reducing the impact of losing a single node.
 
-This reduces the impact of losing a single node.
+<br>
 
-8. High Availability
+## 8️⃣ High Availability
 
-The FastAPI application is stateless and runs with multiple replicas.
+The FastAPI application is **stateless** and runs with multiple replicas behind a stable Kubernetes Service.
 
-Example:
+```mermaid
+flowchart LR
+    SVC[🧭 performance-api Service] --> P1[📦 Pod 1]
+    SVC --> P2[📦 Pod 2]
 
-performance-api
-       |
-       +---- Pod 1
-       |
-       +---- Pod 2
+    style SVC fill:#0ea5e9,color:#fff
+    style P1 fill:#22c55e,color:#fff
+    style P2 fill:#22c55e,color:#fff
+```
 
-The Kubernetes Service provides stable access to the pods.
+| Probe | Path | Purpose |
+|---|---|---|
+| 🟢 Readiness | `/ready` | Determines whether a pod can receive traffic |
+| ❤️ Liveness | `/health` | Determines whether Kubernetes should restart an unhealthy container |
 
-Readiness and liveness probes are configured:
+<br>
 
-/ready
-/health
+## 9️⃣ Horizontal Pod Autoscaling
 
-Readiness determines whether a pod can receive traffic.
+| Setting | Value |
+|---|---|
+| Minimum replicas | `2` |
+| Maximum replicas | `5` |
+| CPU target | `60%` |
 
-Liveness determines whether Kubernetes should restart an unhealthy container.
+```mermaid
+flowchart TD
+    HPA[📐 HPA] --> R[🚀 Argo Rollout]
+    R --> P1[📦 Pod]
+    R --> P2[📦 Pod]
+    R --> P3[📦 Pod ...]
 
-9. Horizontal Pod Autoscaling
+    style HPA fill:#22c55e,color:#fff
+    style R fill:#F4511E,color:#fff
+```
 
-The application uses Kubernetes HPA.
+During K6 load testing, CPU utilization increased and HPA scaled the application:
 
-Configuration:
+<div align="center">
 
-Minimum replicas: 2
-Maximum replicas: 5
-CPU target: 60%
+**2 replicas → 3 replicas** (under load) → back toward minimum after load decreased
 
-The HPA targets the Argo Rollout:
+</div>
 
-HPA
- |
- v
-Argo Rollout
- |
- +---- Pod
- +---- Pod
- +---- Pod
- ...
+<br>
 
-During K6 load testing, CPU utilization increased and HPA scaled the application from:
+## 🔟 Helm
 
-2 replicas
-     |
-     v
-3 replicas
+Deployment is fully managed via Helm.
 
-After the load decreased, the replica count returned toward the configured minimum.
-
-10. Helm
-
-The application deployment is managed using Helm.
-
-Main chart:
-
-helm/app/
-
-Validate the chart:
-
+```bash
+# Validate
 helm lint helm/app
 
-Render the chart:
-
+# Render
 helm template performance-api helm/app
+```
 
-The Helm chart manages:
+The Helm chart manages: `Rollout` · `Service` · `HPA` · `ConfigMap` · `Secret` · `ServiceMonitor` · `Istio Gateway` · `Istio VirtualService` · `Istio DestinationRule`
 
-Rollout
-Service
-HPA
-ConfigMap
-Secret
-ServiceMonitor
-Istio Gateway
-Istio VirtualService
-Istio DestinationRule
+This keeps the Kubernetes desired state **version-controlled and reproducible.**
 
-This keeps the Kubernetes desired state version-controlled and reproducible.
+<br>
 
-11. GitOps with Argo CD
+## 1️⃣1️⃣ GitOps with Argo CD
 
-Argo CD is responsible for Continuous Delivery.
+Argo CD handles **Continuous Delivery** — the Git repository is the single source of truth.
 
-The Git repository acts as the source of truth.
+```mermaid
+flowchart TD
+    CI[⚙️ GitHub Actions] -->|update Helm values| GH[(📦 Git Repository)]
+    GH -->|detects change| ACD[🔄 Argo CD]
+    ACD --> HR[📦 Helm Rendering]
+    HR --> K8S[☸️ Kubernetes]
 
-The deployment flow is:
+    style CI fill:#2088FF,color:#fff
+    style GH fill:#24292e,color:#fff
+    style ACD fill:#EF7B4D,color:#fff
+    style HR fill:#0F1689,color:#fff
+    style K8S fill:#326CE5,color:#fff
+```
 
-GitHub Actions
-      |
-      | update Helm values
-      |
-      v
-Git Repository
-      |
-      | Argo CD detects change
-      v
-Argo CD
-      |
-      v
-Helm rendering
-      |
-      v
-Kubernetes
+> 🚫 GitHub Actions **never** runs `kubectl apply`, `kubectl set image`, or `kubectl patch` as a deployment step. CI only updates the desired Helm state and pushes to Git — **Argo CD reconciles the cluster.**
 
-GitHub Actions does not directly deploy the application.
+<br>
 
-There is no:
+## 1️⃣2️⃣ Continuous Integration
 
-kubectl apply
-kubectl set image
-kubectl patch
+```mermaid
+flowchart LR
+    A[🔀 Git Push] --> B[🧪 Run Tests]
+    B --> C[🐳 Build Image]
+    C --> D[📤 Push to GHCR]
+    D --> E[📝 Update Helm Version]
+    E --> F[✅ Commit Desired State]
+    F --> G[📤 Push to Git]
 
-deployment step in CI.
+    style A fill:#24292e,color:#fff
+    style B fill:#f59e0b,color:#fff
+    style C fill:#2496ED,color:#fff
+    style D fill:#2496ED,color:#fff
+    style E fill:#0F1689,color:#fff
+    style G fill:#22c55e,color:#fff
+```
 
-Instead, CI updates the desired Helm state and pushes the change to Git.
+Application tests run with **pytest**, and the pipeline only builds/publishes when appropriate.
 
-Argo CD then reconciles the Kubernetes cluster with Git.
+<br>
 
-12. Continuous Integration
+## 1️⃣3️⃣ Dynamic Build Versioning
 
-GitHub Actions performs CI tasks.
+🚫 **Never hardcode** `image.tag: latest`.
 
-The pipeline performs:
+```mermaid
+flowchart LR
+    A[⚙️ CI Build] -->|dynamic version| B[📦 GHCR Image]
+    B --> C[📝 helm/app/values.yaml]
+    C --> D[🔄 Argo CD]
 
-Git Push
-   |
-   v
-Run tests
-   |
-   v
-Build Docker image
-   |
-   v
-Push image to GHCR
-   |
-   v
-Update Helm image version
-   |
-   v
-Commit desired state
-   |
-   v
-Push to Git
+    style A fill:#2088FF,color:#fff
+    style B fill:#2496ED,color:#fff
+    style C fill:#0F1689,color:#fff
+    style D fill:#EF7B4D,color:#fff
+```
 
-The application tests are executed using:
+**Example:**
 
-pytest
+```
+Build 42 → ghcr.io/rithuraj6/devops-perfomance-api:42 → Helm values → Argo CD
+```
 
-The pipeline only builds and publishes the application when appropriate.
+Every deployment is traceable to a specific CI build number.
 
-13. Dynamic Build Version
+<br>
 
-The application image version is generated dynamically by GitHub Actions.
+## 1️⃣4️⃣ Canary Deployment
 
-The important principle is:
+Argo Rollouts manages progressive delivery using a **Canary** strategy.
 
-Do NOT hardcode:
+```mermaid
+flowchart LR
+    S[🟦 Stable] -->|10%| C1[🟪 Canary]
+    C1 -->|25%| C2[🟪 Canary]
+    C2 -->|50%| C3[🟪 Canary]
+    C3 -->|75%| C4[🟪 Canary]
+    C4 -->|100%| NS[🟦 New Stable]
 
-image:
-  tag: latest
+    style S fill:#0ea5e9,color:#fff
+    style C1 fill:#8b5cf6,color:#fff
+    style C2 fill:#8b5cf6,color:#fff
+    style C3 fill:#8b5cf6,color:#fff
+    style C4 fill:#8b5cf6,color:#fff
+    style NS fill:#0ea5e9,color:#fff
+```
 
-Instead:
+| Stage | Traffic to Canary |
+|:---:|:---:|
+| 1 | 🟪 10% |
+| 2 | 🟪🟪 25% |
+| 3 | 🟪🟪🟪🟪🟪 50% |
+| 4 | 🟪🟪🟪🟪🟪🟪🟪 75% |
+| 5 | 🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪 100% |
 
-CI Build
-   |
-   | dynamic build/version number
-   v
-GHCR image
-   |
-   v
-helm/app/values.yaml
-   |
-   v
-Argo CD
+Pauses are included between stages so the new version receives **gradually increasing traffic** instead of an immediate 100% cutover.
 
-This makes every deployment traceable to a specific CI build.
+<br>
 
-For example:
+## 1️⃣5️⃣ Istio Traffic Management
 
-Build 42
-   |
-   v
-ghcr.io/rithuraj6/devops-perfomance-api:42
-   |
-   v
-Helm values
-   |
-   v
-Argo CD
+```mermaid
+flowchart TD
+    GW[🚪 Istio Gateway] --> VS[🔀 VirtualService]
+    VS --> DR[📐 DestinationRule]
+    DR --> STB[🟦 stable]
+    DR --> CAN[🟪 canary]
 
-The build number is therefore passed dynamically from CI into the GitOps desired state.
+    style GW fill:#466BB0,color:#fff
+    style VS fill:#466BB0,color:#fff
+    style DR fill:#466BB0,color:#fff
+    style STB fill:#0ea5e9,color:#fff
+    style CAN fill:#8b5cf6,color:#fff
+```
 
-14. Canary Deployment
-
-Argo Rollouts manages progressive delivery.
-
-The current Rollout strategy is Canary.
-
-Example progression:
-
-Stable
-  |
-  | 10%
-  v
-Canary
-  |
-  | 25%
-  v
-Canary
-  |
-  | 50%
-  v
-Canary
-  |
-  | 75%
-  v
-Canary
-  |
-  | 100%
-  v
-Stable
-
-Configured progression:
-
-10%
-25%
-50%
-75%
-100%
-
-Pauses are included between stages.
-
-This allows the new version to receive gradually increasing traffic instead of immediately receiving 100% of production traffic.
-
-15. Istio Traffic Management
-
-Istio is used for service-to-service traffic management and progressive delivery.
-
-The application uses:
-
-Istio Gateway
-       |
-       v
-VirtualService
-       |
-       v
-DestinationRule
-       |
-       +---- stable
-       |
-       +---- canary
-
-The Argo Rollouts controller dynamically manages the stable and canary subsets.
-
-Example:
-
+```yaml
 route:
   - destination:
       host: performance-api
@@ -595,231 +557,173 @@ route:
       host: performance-api
       subset: canary
     weight: 0
+```
 
-During a canary rollout, these weights are adjusted by Argo Rollouts.
+During a canary rollout, these weights are **dynamically adjusted by Argo Rollouts.**
 
-16. Zero-Downtime Deployment
+<br>
 
-Zero-downtime behavior is achieved using:
+## 1️⃣6️⃣ Zero-Downtime Deployment
 
-Multiple application replicas
-Kubernetes Service
-Readiness probes
-Liveness probes
-Argo Rollouts
-Progressive traffic shifting
-Istio traffic management
-Controlled rollout progression
+Achieved through the combination of:
 
-Traffic is shifted gradually instead of replacing all application pods simultaneously.
+✅ Multiple application replicas · ✅ Kubernetes Service · ✅ Readiness probes · ✅ Liveness probes · ✅ Argo Rollouts · ✅ Progressive traffic shifting · ✅ Istio traffic management · ✅ Controlled rollout progression
 
-17. Blue-Green Deployment
+Traffic is shifted **gradually**, never by replacing all pods simultaneously.
 
-The project also includes Blue-Green deployment design as part of the progressive delivery requirement.
+<br>
 
-The concept is:
+## 1️⃣7️⃣ Blue-Green Deployment
 
-                 Traffic
-                    |
-                    v
-               Active Service
-                    |
-                    v
-                 BLUE
-                    |
-              switch traffic
-                    |
-                    v
-                 GREEN
+Included as a supported progressive-delivery design.
 
-Blue-Green deployment maintains two application environments:
+```mermaid
+flowchart LR
+    T[🌐 Traffic] --> AS[🧭 Active Service]
+    AS --> BLUE[🔵 BLUE — current version]
+    BLUE -.switch traffic.-> GREEN[🟢 GREEN — new version]
 
-BLUE  = current version
-GREEN = new version
+    style T fill:#6366f1,color:#fff
+    style AS fill:#0ea5e9,color:#fff
+    style BLUE fill:#3b82f6,color:#fff
+    style GREEN fill:#22c55e,color:#fff
+```
 
-Traffic can then be switched between them.
+`BLUE` = current version · `GREEN` = new version — traffic is switched between them atomically.
 
-The active Canary configuration remains the primary live deployment strategy used for the performance demonstration, while the Blue-Green approach is retained as a supported progressive-delivery strategy for the project requirement.
+> ℹ️ **Canary** remains the primary live deployment strategy for the performance demonstration; Blue-Green is retained as a supported strategy for the project requirement.
 
-18. PostgreSQL
+<br>
 
-PostgreSQL is used as the application database.
+## 1️⃣8️⃣ PostgreSQL
 
-The database is deployed in Kubernetes using Helm.
+| Setting | Value |
+|---|---|
+| Database | `performance_db` |
+| User | `app_user` |
+| Port | `5432` |
+| Persistent storage | `10Gi` (PVC) |
 
-Database configuration includes:
+Deployed via Helm; data validated after restarting the database workload. Sample data includes products such as **Kubernetes Laptop** and **DevOps Monitor**.
 
-Database:
-performance_db
+<br>
 
-User:
-app_user
+## 1️⃣9️⃣ Redis
 
-Port:
-5432
+Used as the application caching layer, deployed via Helm with **1Gi** persistence.
 
-Persistent storage is configured using a Kubernetes PersistentVolumeClaim.
+```mermaid
+flowchart TD
+    C[📱 Client] --> F[🧩 FastAPI]
+    F -->|cache hit| R[(⚡ Redis)]
+    F -->|cache miss| PG[(🗄️ PostgreSQL)]
 
-Example storage:
+    style C fill:#6366f1,color:#fff
+    style F fill:#00C7B7,color:#000
+    style R fill:#DC382D,color:#fff
+    style PG fill:#4169E1,color:#fff
+```
 
-10Gi
+<br>
 
-Database data was validated after restarting the database workload.
+## 2️⃣0️⃣ Prometheus Monitoring
 
-Existing sample data includes products such as:
+Metrics exposed at `/metrics`, discovered via a Kubernetes `ServiceMonitor` (`helm/app/templates/servicemonitor.yaml`).
 
-Kubernetes Laptop
-DevOps Monitor
-19. Redis
+**Key metrics:**
+- `http_requests_total`
+- `http_request_duration_seconds_bucket`
+- `http_request_duration_seconds_count`
+- `http_request_duration_seconds_sum`
 
-Redis is used as the application caching layer.
+✅ Prometheus verified to scrape both application pods successfully.
 
-Redis is also deployed using Helm.
+<br>
 
-Example persistence:
+## 2️⃣1️⃣ Grafana
 
-1Gi
+```mermaid
+flowchart LR
+    A[🧩 Application] --> P[📈 Prometheus]
+    P --> G[📊 Grafana]
 
-The application uses Redis to reduce repeated database access and improve response performance.
+    style A fill:#00C7B7,color:#000
+    style P fill:#E6522C,color:#fff
+    style G fill:#F46800,color:#fff
+```
 
-Architecture:
+**Dashboard panels:** API request rate · HPA replica count · HPA desired replicas · P95 latency · CPU utilization
 
-Client
-  |
-  v
-FastAPI
-  |
-  +---- Cache hit ----> Redis
-  |
-  +---- Cache miss ---> PostgreSQL
-20. Prometheus Monitoring
+<br>
 
-The FastAPI application exposes Prometheus metrics through:
+## 2️⃣2️⃣ Performance Testing
 
-/metrics
+K6 load test script: `load-test/api-load.js`
 
-A Kubernetes ServiceMonitor is managed through Helm:
+```mermaid
+flowchart LR
+    A[10 VUs] --> B[25 VUs]
+    B --> C[50 VUs]
+    C --> D[0 VUs]
 
-helm/app/templates/servicemonitor.yaml
+    style A fill:#a5b4fc,color:#000
+    style B fill:#818cf8,color:#fff
+    style C fill:#6366f1,color:#fff
+    style D fill:#e0e7ff,color:#000
+```
 
-Prometheus discovers the application through the ServiceMonitor.
+Validates: HTTP success rate · response latency · request throughput · application scalability · HPA behavior
 
-Important application metrics include:
+<br>
 
-http_requests_total
-http_request_duration_seconds_bucket
-http_request_duration_seconds_count
-http_request_duration_seconds_sum
+## 2️⃣3️⃣ Performance Test Results
 
-Prometheus was verified to scrape both application pods successfully.
+**Target:** `GET /api/products` · **Duration:** 3 minutes · **Max VUs:** 50
 
-21. Grafana
+<div align="center">
 
-Grafana is used to visualize application and Kubernetes performance.
+| Metric | Result |
+|---|:---:|
+| 📊 Total requests | **4,144** |
+| ⚡ Average throughput | **22.96 req/s** |
+| ❌ HTTP failures | **0.00%** ✅ |
+| ⏱️ P95 latency | **18.43 ms** |
+| 👥 Maximum VUs | **50** |
+| ✅ Checks passed | **100%** |
 
-The dashboard includes:
+</div>
 
-API request rate
-HPA replica count
-HPA desired replicas
-P95 latency
-CPU utilization
+![Zero Failures](https://img.shields.io/badge/HTTP%20failures-0.00%25-brightgreen?style=for-the-badge)
+![Checks](https://img.shields.io/badge/checks%20passed-100%25-brightgreen?style=for-the-badge)
+![Throughput](https://img.shields.io/badge/throughput-22.96%20req%2Fs-blue?style=for-the-badge)
 
-Example monitoring flow:
+The application successfully handled the load **without any HTTP request failures.**
 
-Application
-     |
-     v
-Prometheus
-     |
-     v
-Grafana
+<br>
 
-The dashboard provides visibility into application behavior during load testing and deployments.
+## 2️⃣4️⃣ HPA Performance During Load
 
-22. Performance Testing
+```mermaid
+flowchart LR
+    A[2 replicas] -->|increased CPU load| B[3 replicas]
 
-K6 is used for HTTP load testing.
+    style A fill:#94a3b8,color:#000
+    style B fill:#22c55e,color:#fff
+```
 
-Test script:
+| Setting | Value |
+|---|---|
+| `minReplicas` | 2 |
+| `maxReplicas` | 5 |
+| CPU target | 60% |
 
-load-test/api-load.js
+This confirms the application **automatically scales based on CPU utilization.**
 
-The test gradually increases traffic:
+<br>
 
-10 VUs
-   |
-   v
-25 VUs
-   |
-   v
-50 VUs
-   |
-   v
-0 VUs
+## 2️⃣5️⃣ Prometheus P95 Latency
 
-The test validates:
-
-HTTP success rate
-Response latency
-Request throughput
-Application scalability
-HPA behavior
-23. Performance Test Results
-
-A full K6 test was executed against:
-
-GET /api/products
-
-Test duration:
-
-3 minutes
-
-Maximum virtual users:
-
-50
-
-Results:
-
-Metric	Result
-Total requests	4,144
-Average throughput	22.96 req/s
-HTTP failures	0.00%
-P95 latency	18.43 ms
-Maximum VUs	50
-Checks passed	100%
-
-The application successfully handled the load without HTTP request failures.
-
-24. HPA Performance During Load
-
-During the K6 test, CPU utilization increased sufficiently to trigger HPA scaling.
-
-Observed behavior:
-
-Initial replicas
-      |
-      v
-     2
-      |
-      | increased CPU load
-      v
-     3
-
-The HPA configuration was:
-
-minReplicas: 2
-maxReplicas: 5
-CPU target: 60%
-
-This demonstrates that the application can automatically scale based on CPU utilization.
-
-25. Prometheus P95 Latency
-
-Prometheus was also used to calculate application request latency.
-
-Example PromQL:
-
+```promql
 histogram_quantile(
   0.95,
   sum by (le) (
@@ -830,23 +734,20 @@ histogram_quantile(
     }[5m])
   )
 )
+```
 
-An observed value during monitoring was approximately:
+| Source | P95 Latency |
+|---|:---:|
+| 📈 Prometheus (monitoring window) | ~95 ms |
+| 🧪 K6 (end-to-end test run) | 18.43 ms |
 
-95 ms
+> The difference is expected — the measurements come from different observation windows and measurement layers.
 
-The K6 end-to-end test reported a lower P95 during its measured run:
+<br>
 
-18.43 ms
+## 2️⃣6️⃣ CPU Monitoring
 
-The difference is expected because the measurements come from different observation windows and measurement layers.
-
-26. CPU Monitoring
-
-Application CPU utilization can be queried using Prometheus.
-
-Example:
-
+```promql
 sum by (pod) (
   rate(
     container_cpu_usage_seconds_total{
@@ -856,120 +757,138 @@ sum by (pod) (
     }[5m]
   )
 ) * 100
+```
 
-This allows CPU utilization to be correlated with HPA scaling behavior.
+Used to correlate CPU utilization directly with HPA scaling behavior.
 
-27. Health Validation
+<br>
 
-Application health was validated through Istio ingress.
+## 2️⃣7️⃣ Health Validation
 
-Health:
-
+```bash
 curl -i http://performance.local/health
-
-Readiness:
-
 curl -i http://performance.local/ready
-
-Products:
-
 curl -i http://performance.local/api/products
-
-Individual product:
-
 curl -i http://performance.local/api/products/1
+```
 
-All tested endpoints returned successful responses.
+✅ All tested endpoints returned successful responses, validated through the Istio ingress path.
 
-28. Useful Commands
-Kubernetes
+<br>
+
+## 2️⃣8️⃣ Useful Commands
+
+<details>
+<summary><b>☸️ Kubernetes</b></summary>
+
+```bash
 kubectl get nodes
 kubectl get pods -n performance-platform
 kubectl get rollout -n performance-platform
 kubectl get hpa -n performance-platform
 kubectl get svc -n performance-platform
-Argo Rollouts
+```
+</details>
+
+<details>
+<summary><b>🚀 Argo Rollouts</b></summary>
+
+```bash
 kubectl argo rollouts get rollout performance-api \
   -n performance-platform
 
-Watch rollout:
-
+# Watch live
 kubectl argo rollouts get rollout performance-api \
   -n performance-platform \
   --watch
-Helm
+```
+</details>
 
-Lint:
+<details>
+<summary><b>📦 Helm</b></summary>
 
+```bash
 helm lint helm/app
-
-Render:
-
 helm template performance-api helm/app
-Prometheus
+```
+</details>
 
-Port-forward:
+<details>
+<summary><b>📈 Prometheus</b></summary>
 
+```bash
 kubectl port-forward \
   -n monitoring \
   svc/monitoring-kube-prometheus-prometheus \
   9090:9090
-Grafana
+```
+</details>
 
-Port-forward:
+<details>
+<summary><b>📊 Grafana</b></summary>
 
+```bash
 kubectl port-forward \
   -n monitoring \
   svc/monitoring-grafana \
   3000:80
-29. GitOps Deployment Flow
+```
+</details>
 
-The complete deployment lifecycle is:
+<br>
 
-1. Developer changes application
-             |
-             v
-2. git push
-             |
-             v
-3. GitHub Actions starts
-             |
-             +---- pytest
-             |
-             +---- Docker build
-             |
-             +---- Push image to GHCR
-             |
-             +---- Generate build/version
-             |
-             +---- Update Helm values
-             |
-             +---- Commit desired state
-             |
-             v
-4. GitHub repository changes
-             |
-             v
-5. Argo CD detects Git change
-             |
-             v
-6. Argo CD renders Helm chart
-             |
-             v
-7. Argo Rollouts creates new ReplicaSet
-             |
-             v
-8. Istio controls traffic
-             |
-             v
-9. Canary progression
-             |
-             v
-10. New version becomes stable
+## 2️⃣9️⃣ GitOps Deployment Flow
 
-This separates:
+The complete lifecycle, from a code change to a stable canary rollout:
 
-CI = GitHub Actions
-CD = Argo CD
-Progressive Delivery = Argo Rollouts
-Traffic Management = Istio
+```mermaid
+flowchart TD
+    A[1️⃣ Developer changes application] --> B[2️⃣ git push]
+    B --> C[3️⃣ GitHub Actions starts]
+    C --> C1[🧪 pytest]
+    C --> C2[🐳 Docker build]
+    C --> C3[📤 Push image to GHCR]
+    C --> C4[🔢 Generate build/version]
+    C --> C5[📝 Update Helm values]
+    C --> C6[✅ Commit desired state]
+    C6 --> D[4️⃣ GitHub repository changes]
+    D --> E[5️⃣ Argo CD detects Git change]
+    E --> F[6️⃣ Argo CD renders Helm chart]
+    F --> G[7️⃣ Argo Rollouts creates new ReplicaSet]
+    G --> H[8️⃣ Istio controls traffic]
+    H --> I[9️⃣ Canary progression]
+    I --> J[🔟 New version becomes stable]
+
+    style A fill:#6366f1,color:#fff
+    style C fill:#2088FF,color:#fff
+    style D fill:#24292e,color:#fff
+    style E fill:#EF7B4D,color:#fff
+    style F fill:#0F1689,color:#fff
+    style G fill:#F4511E,color:#fff
+    style H fill:#466BB0,color:#fff
+    style J fill:#22c55e,color:#fff
+```
+
+<div align="center">
+
+| Responsibility | Owner |
+|---|:---:|
+| 🧪 **CI** | GitHub Actions |
+| 🔄 **CD** | Argo CD |
+| 🚀 **Progressive Delivery** | Argo Rollouts |
+| 🔀 **Traffic Management** | Istio |
+
+</div>
+
+<br>
+
+---
+
+<div align="center">
+
+### 🎯 From commit to canary — fully automated, fully observable.
+
+![Made with Kubernetes](https://img.shields.io/badge/built%20for-Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)
+![GitOps](https://img.shields.io/badge/delivery-GitOps-EF7B4D?style=flat-square&logo=argo&logoColor=white)
+
+</div>
