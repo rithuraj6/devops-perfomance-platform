@@ -58,7 +58,7 @@ istio:
     routeName: primary
 
 strategy:
-  type: canary
+  type: blueGreen
 
   canary:
     steps:
